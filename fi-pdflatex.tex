@@ -116,37 +116,52 @@
 %% headings and a table of contents entry, we must add them manually:
 \markright{\textsc{Introduction}}
 \addcontentsline{toc}{chapter}{Introduction}
+Disks (e.g., hard drives, SSDs, Flash drives)  are usually divided into atomic parts named sectors, which are represented as blocks in the software layer.
+Sectors store a fixed amount of data, usually 512 bytes and 4KiB, but other sector sizes can be used.
+Sectors may contain partition tables, file system information, files or be empty.
 
-Theses are rumoured to be \enquote{the capstones of education}, so
-I decided to write one of my own. If all goes well, I will soon
-have a diploma under my belt. Wish me luck!
+Some of the possible contents may contain specific byte patterns which can be analyzed and used to identify the type of content stored in the sector.
+When a byte pattern is not present, sector content can be analyzed for entropy to estimate whether it is encrypted.
+A good way to get an idea about which parts of the disk are encrypted and where filesystem data is stored is to visualize the data.
+This visualization can also be used as an illustration while teaching.
 
-\begin{otherlanguage}{czech}
-Říká se, že závěrečné práce jsou \enquote{vyvrcholením studia}
-a tak jsem se rozhodl jednu také napsat. Pokud vše půjde podle
-plánu, odnesu si na konci semestru diplom. Držte mi palce!
-\end{otherlanguage}
+The text of this thesis is structured into four chapters.
+Chapter number one lists some byte patterns of sectors and discusses algorithms for their detection.
+Chapter number two discusses algorithms used to calculate entropy and possible issues with their accuracy.
+Chapter number three discusses ways of visualization and their advantages and disadvantages.
+The last chapter concludes with an evaluation of the resulting utility.
 
-\begin{otherlanguage}{slovak}
-Hovorí sa, že záverečné práce sú \enquote{vyvrcholením štúdia}
-a tak som sa rozhodol jednu tiež napísať. Ak všetko pôjde podľa
-plánu, odnesiem si na konci semestra diplom. Držte mi palce!
-\end{otherlanguage}
+The resulting utility is available on GitHub\footnote{\url{https://github.com/malon43/entropy-visualization}} under the MIT License.
+% Theses are rumoured to be \enquote{the capstones of education}, so
+% I decided to write one of my own. If all goes well, I will soon
+% have a diploma under my belt. Wish me luck!
 
-\begin{otherlanguage}{german}
-Man munkelt, dass die Dissertation \enquote{die Krönung der
-Ausbildung} ist. Deshalb habe ich mich beschlossen meine eigene
-zu schreiben. Wenn alles gut geht, bekomme ich bald ein Diplom.
-Wünsch mir Glück!
-\end{otherlanguage}
+% \begin{otherlanguage}{czech}
+% Říká se, že závěrečné práce jsou \enquote{vyvrcholením studia}
+% a tak jsem se rozhodl jednu také napsat. Pokud vše půjde podle
+% plánu, odnesu si na konci semestru diplom. Držte mi palce!
+% \end{otherlanguage}
 
-\begin{otherlanguage}{russian}\textrussian{%
-Говорят, что тезис -- это \enquote{кульминация обучения}. Поэтому
-я и решил написать собственный тезис. Если всё сработает по плану,
-я скоро получу диплом. Желайте мне удачи!
-}\end{otherlanguage}
+% \begin{otherlanguage}{slovak}
+% Hovorí sa, že záverečné práce sú \enquote{vyvrcholením štúdia}
+% a tak som sa rozhodol jednu tiež napísať. Ak všetko pôjde podľa
+% plánu, odnesiem si na konci semestra diplom. Držte mi palce!
+% \end{otherlanguage}
 
-\chapter{Disk structure and specific patterns}
+% \begin{otherlanguage}{german}
+% Man munkelt, dass die Dissertation \enquote{die Krönung der
+% Ausbildung} ist. Deshalb habe ich mich beschlossen meine eigene
+% zu schreiben. Wenn alles gut geht, bekomme ich bald ein Diplom.
+% Wünsch mir Glück!
+% \end{otherlanguage}
+
+% \begin{otherlanguage}{russian}\textrussian{%
+% Говорят, что тезис -- это \enquote{кульминация обучения}. Поэтому
+% я и решил написать собственный тезис. Если всё сработает по плану,
+% я скоро получу диплом. Желайте мне удачи!
+% }\end{otherlanguage}
+
+\chapter{Specific sector patterns and their detection}
 \chapter{Entropy calculation}
 \chapter{Ways of visualization}
 \chapter{implementation?}
@@ -255,7 +270,7 @@ the rest of the work:
 
 Footnotes are used to include additional information to the
 document that are not necessary for the understanding of the main
-text. Here is a footnote reference^[Here is the footnote.] and
+text. Here is a footnote reference^[Here is the .] and
 another.[^longnote]
 
 [^longnote]: Here's one with multiple blocks.
