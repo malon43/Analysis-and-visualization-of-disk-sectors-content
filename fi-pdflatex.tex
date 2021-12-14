@@ -191,7 +191,13 @@ Where $s$ is equal to the sector size in bytes.
 Normalized Shannon's entropy ranges from 0, the least random, which means it contains a single repeated byte value, to 1, the most random, which means that every byte value is contained in the sector an equal amount of times (i.e.exactly $\frac{s}{256}$ times).
 Using this value, one can estimate whether the sector contains encrypted data. 
 
-However,  multiple problems arise when using Shannon's entropy. A single sector of data is not enough to calculate entropy reliably. In order to get precise results, the provided data would need to be in the order of gigabytes. Moreover, there is no simple line where all sectors with a higher entropy are encrypted, and all with lower entropy are not. That means that most sectors containing compressed file formats like videos, jpeg images, or zip files will be almost indistinguishable from encrypted sectors by entropy. Another problem is that Shannon's entropy completely disregards the order of values. For example, simple counting up (x00 x01 ... xFE xFF) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
+However,  multiple problems arise when using Shannon's entropy.
+A single sector of data is not enough to calculate entropy reliably.
+In order to get precise results, the provided data would need to be in the order of gigabytes.
+Moreover, there is no simple line where all sectors with a higher entropy are encrypted, and all with lower entropy are not.
+That means that most sectors containing compressed file formats like videos, jpeg images, or zip files will be almost indistinguishable from encrypted sectors by entropy.
+Another problem is that Shannon's entropy completely disregards the order of values.
+For example, simple counting up (0x00 0x01 ... 0xFE 0xFF) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
 
 Most works I found that attempted to use entropy calculation to classify small data samples used Shannon's entropy despite its drawbacks mentioned above.
 However, each work aimed to use the calculated entropy differently.
