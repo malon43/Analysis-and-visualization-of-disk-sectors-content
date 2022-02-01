@@ -123,7 +123,11 @@ Sectors may contain partition tables, file system information, files or be empty
 Some of the possible contents may contain specific byte patterns which can be analyzed and used to identify the type of content stored in the sector.
 When a byte pattern is not present, sector content can be analyzed for entropy to estimate whether it is encrypted.
 A good way to get an idea about which parts of the disk are encrypted and where filesystem data is stored is to visualize the data.
-This visualization can also be used as an illustration while teaching.
+This visualization will allow humans to distinguish between different data encryption methods such as filesystem-level and full-disk encryption and even uncover faulty encryption. % MAYBE
+Visualizing can also be very useful as an illustration while teaching.
+
+The utility introduced in this bachelor's thesis analyzes the sectors of a user-specified size of a provided disk image and visualizes the result using the Pillow Python library.
+The utility is also easily extensible by other output methods.
 
 The text of this thesis is structured into five chapters.
 Chapter number one explains the foundations of the thesis and examines prior work.
@@ -224,12 +228,41 @@ However, when the disk would contain a shorter sequence, this would produce only
 That is why work \cite{cortesi11} used other, more complex, space-filling curves like the Z-order curve (also known as Morton curve) or Hilbert curve.
 Placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and become easily visible while keeping consecutive sectors close together.
 
-\chapter{Specific sector patterns and their detection}
-This chapter focuses on possible byte patterns which can be found in the disk sectors, their uses, ways of detection, and the usefulness of their visualization.
-\section{Single byte patterns}
+\chapter{Used tools}
+\section{Programming language}
+When choosing the programming language, I was deciding mainly between the languages C and Python.
+
+While C is very efficient, this utility is not time-sensitive and has no real-time constraints.
+However, with the amount of data the utility is meant to process, its efficiency is very much desirable and can be the difference of having analysis take minutes instead of hours or even days.
+On the other hand, while not as efficient as C, Python provides many features, making the development and later extensibility much easier.
+Python also enables C integration, which may be helpful for implementing parts of code that are called repeatedly and require efficiency.
+
+Another point worthy of consideration was subjective -- my comfortability with the language.
+Even though I've taken multiple courses on C, I didn't feel confident enough to write this utility entirely in C because of my lack of experience working with external C libraries and writing programs with hundreds of lines that are also meant to be expanded on.
+
+Based on all of this, I chose Python.
+
+\section{Visualization methods}
+Since I intended to visualize the sectors using a bitmap, I needed a tool to generate these images.
+One option was to use libraries and utilities like matplotlib or gnuplot.
+
+Both the Python package matplotlib and the gnuplot utility provide the means to generate different graphs, charts, or diagrams.
+Both can generate images with one pixel per data point. A significant advantage of these plotting utilities is the ability to choose one of the premade colormaps for visualizing different entropies of sectors.
+However, the visualized data is not only from a single range of entropy, and the color should be dependent on other factors like the sector patterns.
+This is certainly possible to implement, but it might be non-trivial.
+Another advantage is that the color descriptions are easily insertable with automatic centering.
+
+Another option is to use an image manipulation library.
+The advantage of this approach is the straightforward way to have complete control over the resulting image.
+The disadvantage is the need to implement the color descriptions and color mapping myself.
+Since the implementation of color mapping is required either way and color description is not that hard to implement, I chose this option.
+
+The library I chose for image manipulation is the Pillow library, which provides a simple image manipulation interface.
+
 \chapter{Entropy calculation}
 \chapter{Ways of visualization}
-\chapter{Implementation?}
+\chapter{Implementation}
+\chapter{Results}
 \chapter{Conclusion}
 
 % \chapter{Using lightweight markup}
