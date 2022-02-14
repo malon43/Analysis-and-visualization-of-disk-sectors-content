@@ -229,18 +229,33 @@ That is why work \cite{cortesi11} used other, more complex, space-filling curves
 Placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and become easily visible while keeping consecutive sectors close together.
 
 \chapter{Used tools}
-\section{Programming language}
-When choosing the programming language, I was deciding mainly between the languages C and Python.
+%\section{Programming language}
+%When choosing the programming language, I was deciding mainly between the languages C and Python.
 
-While C is very efficient, this utility is not time-sensitive and has no real-time constraints.
-However, with the amount of data the utility is meant to process, its efficiency is very much desirable and can be the difference of having analysis take minutes instead of hours or even days.
-On the other hand, while not as efficient as C, Python provides many features, making the development and later extensibility much easier.
-Python also enables C integration, which may be helpful for implementing parts of code that are called repeatedly and require efficiency.
+%While C is very efficient, this utility is not time-sensitive and has no real-time constraints.
+%However, with the amount of data the utility is meant to process, its efficiency is very much desirable and can be the difference of having analysis take minutes instead of hours or even days.
+%On the other hand, while not as efficient as C, Python provides many features, making the development and later extensibility much easier.
+%Python also enables C integration, which may be helpful for implementing parts of code that are called repeatedly and require efficiency.
 
-Another point worthy of consideration was subjective -- my comfortability with the language.
-Even though I've taken multiple courses on C, I didn't feel confident enough to write this utility entirely in C because of my lack of experience working with external C libraries and writing programs with hundreds of lines that are also meant to be expanded on.
+%Another point worthy of consideration was subjective -- my comfortability with the language.
+%Even though I've taken multiple courses on C, I didn't feel confident enough to write this utility entirely in C because of my lack of experience working with external C libraries and writing programs with hundreds of lines that are also meant to be expanded on.
 
-Based on all of this, I chose Python.
+%Based on all of this, I chose Python.
+\section{Python}
+I chose Python 3\cite{python} based on several factors.
+The most significant factor was subjective -- my comfortability with the language.
+Based on this, my decision was mainly between C and Python.
+
+Another factor is efficiency.
+While this utility is not time-sensitive and has no real-time constraints, its efficiency is very desirable and can be the difference between analysis taking minutes and taking hours or even days.
+Here, C is the obvious winner.
+However, Python enables C integration\cite{python-extend}, which could be used to implement parts of code called tens of millions of times to speed up the utility's performance.
+
+Another consideration is the extensibility of the written code. One of my goals is to make the code as extensible as possible. While it is certainly possible to make easily extensible code in C, I did not feel confident enough to do it well.
+
+The next significant consideration was the availability of other tools and built-in libraries.
+Python provides a wide range of built-in modules, making programming easier like argparse\cite{argparse} and collections\cite{collections} while also having many other installable libraries, which are mostly platform-independent.
+C also has many helpful libraries, but many are platform-dependent and might not be available for other distributions.
 
 \section{Visualization methods}
 Since I intended to visualize the sectors using a bitmap, I needed a tool to generate these images.
