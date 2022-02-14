@@ -32,7 +32,7 @@
   main=english, %% By using `czech` or `slovak` as the main locale
                 %% instead of `english`, you can typeset the thesis
                 %% in either Czech or Slovak, respectively.
-  english, german, russian, czech, slovak %% The additional keys allow
+  english, german, russian, czech, slovak, %% The additional keys allow
 ]{babel}        %% foreign texts to be typeset as follows:
 %%
 %%   \begin{otherlanguage}{german}  ... \end{otherlanguage}
@@ -244,7 +244,7 @@ Based on all of this, I chose Python.
 
 \section{Visualization methods}
 Since I intended to visualize the sectors using a bitmap, I needed a tool to generate these images.
-One option was to use libraries and utilities like matplotlib or gnuplot.
+One option was to use libraries and utilities like matplotlib\cite{matplotlib} or gnuplot\cite{gnuplot}.
 
 Both the Python package matplotlib and the gnuplot utility provide the means to generate different graphs, charts, or diagrams.
 Both can generate images with one pixel per data point. A significant advantage of these plotting utilities is the ability to choose one of the premade colormaps for visualizing different entropies of sectors.
@@ -257,7 +257,7 @@ The advantage of this approach is the straightforward way to have complete contr
 The disadvantage is the need to implement the color descriptions and color mapping myself.
 Since the implementation of color mapping is required either way and color description is not that hard to implement, I chose this option.
 
-The library I chose for image manipulation is the Pillow library, which provides a simple image manipulation interface.
+The library I chose for image manipulation is the Pillow library\cite{pillow}, which provides a simple image manipulation interface.
 
 \chapter{Entropy calculation}
 \chapter{Ways of visualization}
