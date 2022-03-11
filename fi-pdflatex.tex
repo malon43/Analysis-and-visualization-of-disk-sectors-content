@@ -166,66 +166,121 @@ The resulting utility is available on GitHub\footnote{\url{https://github.com/ma
 % я скоро получу диплом. Желайте мне удачи!
 % }\end{otherlanguage}
 
-\chapter{Prior work}
+\chapter{Prior work} % TODO: Better name
+This review focuses on works on the topics of block detection, entropy calculation, and ways of visualization.
 
-\section{Pattern detection}
+\section{Analysis}
+This section describes parts of analyzing the disk sectors.
+
+\subsection{Block Patterns}
 Each disk is divided into tens, even hundreds of millions of sectors.
 Each disk sector stores some data.
 Sectors of empty new drives would be mostly initialized with a pattern of zeroes, except for partitioning tables and file system metadata.
-Most recent drives use 4KiB sized sectors, also known as Advanced Format, but still provide backward compatibility with older systems which expect 512B sector size with 512B sector size emulation. \cite{seagate}
+
+Most recent drives use 4KiB sized sectors, also known as Advanced Format, but still provide backward compatibility with older systems which expect 512B sector size with 512B sector size emulation.\cite{seagate}
+
 Sector byte pattern is a specific configuration of bytes, which would indicate what this sector is used for.
-For example, a repeated pattern of byte 0x00 often signalizes that this sector has not been used or that the file stored there has been shredded, or bytes 0x55 0xAA at the end of the sector would signalize a master boot record (MBR).
-However, a closer inspection is required because checking for only two bytes would cause way too many false positives in encrypted sectors. 
+For example, a repeated pattern of byte x00 often signalizes that this sector has not been used yet, that the blocks have been freed by the TRIM command.
+The TRIM command is used by the software to inform the drive which sectors no longer contain user data in order to increase performance.\cite{mcmillen21}
+Or, bytes x55xAA at the end of the sector would signalize a block containing master boot record (MBR).
+However, while in many cases, analysis for positions of bytes is not as time-intensive as analysis of randomness or single-byte patterns, multiple problems show up:
+\begin{itemize}
+    \item Testing for many positions and byte configuration will add up.
+    \item Files with magic bytes may be contained in the first sector where the file is stored, but there is no easy way of telling whether the file simply ends, continues on the next sector, or is placed in a completely different sector.
+    \item If the file is unencrypted, it will mostly get picked up by the randomness analysis.
+\end{itemize}
 
-Most works focusing on detecting patterns of bytes on sectors \cite{foster12} \cite{garfmccar15} do it through the lens of forensic analysis and use the filesystem metadata in combination with magic bytes of files to allow the user to find information faster.
-These, while up an abstraction layer from what this thesis focuses on, can provide beneficial information when identifying common patterns of entire sectors or repeating portions of bytes in a single sector. \cite{foster12}
+Most works focusing on detecting patterns of bytes on sectors\cite{foster12, garfmccar15} do it through the lens of forensic analysis and use the filesystem metadata in combination with magic bytes of files to allow the user to find information faster.
+These, while up an abstraction layer from what this thesis focuses on, can provide beneficial information when identifying common patterns of entire sectors or repeating portions of bytes in a single sector.\cite{foster12}
 
-\section{Calculation of entropy}
-
+\subsection{Randomness}
 In order to properly classify all disk sectors, one cannot rely exclusively on byte patterns since files can span multiple sectors and can even be encrypted.
-In this case, it is possible to check for the predictability of the byte values by calculating byte entropy in order to estimate whether or not the sector is encrypted.
-Shannon's entropy can be calculated using:
-$$H(S) = -\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
-Where $P(x_i)$ represents the probability of byte value $i$ (i.e., number of times value $i$ appears in the sector divided by the number of all bytes in the sector).
-Which can be then normalized:
+In this case, it is possible to check the predictability of byte values or even of single bits.
 
-$$\mu (S) = \frac{H}{H_{max}} = \frac{-\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))}{-\sum_{i=0}^{255}(\frac{\frac{s}{256}}{s}\log_2(\frac{\frac{s}{256}}{s}))} =$$
-$$= -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
+In order to precisely differentiate random data, the provided samples would need to be in the order of gigabytes, which is far from the provided 512 or 4096 Bytes.
+However, we can at least get an estimate using the techniques described in this subsection.
+
+\subsubsection{Entropy}
+Shannon's entropy calculates the amount of information in bits provided by each byte value in the sector.\cite{shannon48}
+For example, the entropy of 8 bits means that every byte value is contained the same number of times (i.e., exactly $\frac{s}{256}$ times).
+Whereas the entropy value of 0 means that only a single byte value is contained and is repeated through the whole sector. Shannon's entropy can be calculated using:
+$$H(S) = -\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
+Where $P(x_i)$ represents the probability of byte value $i$ (i.e., number of times value $i$ appears in the sector divided by the number of all bytes in the sector). Which can be then normalized:
+
+$$\mu (S) = \frac{H}{H_{max}} = -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
+
 Where $s$ is equal to the sector size in bytes.
-Normalized Shannon's entropy ranges from 0, the least random, which means it contains a single repeated byte value, to 1, the most random, which means that every byte value is contained in the sector an equal amount of times (i.e., exactly $\frac{s}{256}$ times).
+Normalized Shannon's entropy ranges from 0, the least random (a single repeated byte value), to 1, the most random (every byte value is contained in the sector an equal amount of times).
 Using this value, one can estimate whether the sector contains encrypted data. 
 
 However,  multiple problems arise when using Shannon's entropy.
-A single sector of data is not enough to calculate entropy reliably.
-In order to get precise results, the provided data would need to be in the order of gigabytes.
-Moreover, there is no simple line where all sectors with a higher entropy are encrypted, and all with lower entropy are not.
+There is no simple line where all sectors with a higher entropy are encrypted, and all with lower entropy are not.
 That means that most sectors containing compressed file formats like videos, jpeg images, or zip files will be almost indistinguishable from encrypted sectors by entropy.
 Another problem is that Shannon's entropy completely disregards the order of values.
-For example, simple counting up (0x00 0x01 ... 0xFE 0xFF) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
+For example, simple counting up (x00 x01 ... xFE xFF) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
 
 Most works I found that attempted to use entropy calculation to classify small data samples used Shannon's entropy despite its drawbacks mentioned above.
 However, each work aimed to use the calculated entropy differently.
-Some used \cite{foster12} or tried to use \cite{garfmccar15} it to classify blocks for use in file carving and not encryption detection.
+Some used\cite{foster12} or tried to use\cite{garfmccar15} it to classify blocks for use in file carving and not encryption detection.
 
-Other works used \cite{wazhguli11} or tried to use \cite{bebapeshrara18} entropy calculation as input or part of the input for machine learning trained to classify network packets.
-Work \cite{wazhguli11} also suggested using Tsallis entropy for calculation.
-However, the work did not attempt to calculate Tsallis entropy and instead decided to focus on Shannon's entropy.
+Other works used\cite{wazhguli11} or tried to use\cite{bebapeshrara18} entropy calculation as input or part of the input for machine learning trained to classify network packets.
+Work\cite{wazhguli11} also suggested using Tsallis entropy for calculation. However, the work did not attempt to calculate Tsallis entropy and instead decided to focus on Shannon's entropy.
 
-Another work worthy of consideration \cite{fiallegon19} compared multiple entropy estimation algorithms.
+Another work worthy of consideration\cite{fiallegon19} compared multiple entropy estimation algorithms.
 The work concluded by recommending the Miller-Madow method for uniform byte value distributions to estimate entropy.
 Entropy estimation will be helpful when considering the efficiency and speed of the entropy calculation.
+
+\subsubsection{Chi-squared test}
+The chi-squared test or $\chi^2$ test is used to determine whether or not the data fit our expectations.\cite{pearson00}
+For example, consider flipping five fair coins and counting flipped heads.
+The probability distribution of the results (assuming that the coins cannot land on their side) would look like this:
+
+\begin{center}
+    \begin{tabular}{ r | c c c c c c c }
+        number of heads & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
+        probability & $\frac{1}{32}$ & $\frac{5}{32}$ & $\frac{10}{32}$ & $\frac{10}{32}$ & $\frac{5}{32}$ & $\frac{1}{32}$
+        % 1/32 5/32 5/16 5/16 5/32 1/32
+    \end{tabular}
+\end{center}
+
+First, we select a significance level (e.g. $\alpha = 0.05$).
+Then, after repeating the experiment of flipping five coins 160 times and adding up the results, we get the following table: 
+
+\begin{center}
+    \begin{tabular}{r | c c c c c c}
+         number of heads & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
+         number of flips ($X$) & 2 & 8 & 34 & 64 & 44 & 8 \\
+         expected number of flips ($E$) & 5 & 25 & 50 & 50 & 25 & 5
+    \end{tabular}
+\end{center}
+Given counts of variables $X_i$, expected counts of variables $E_i = 160 * \text{probability}$, and the number of columns $n$ chi-square test statistic can be calculated using: 
+$$\chi^2 = \sum^{n - 1}_{i = 0}{\left(\frac{(X_i - E_i)^2}{E_i}\right)}$$
+After getting the value approximation, the corresponding value from the cumulative chi-squared distribution for $n - 1$ degrees of freedom represents how likely was the measured data is from the distribution of our null hypothesis.
+
+So, for the coin example, the chi-square statistic is calculated:
+$$\chi^2 = \frac{(2 - 5)^2}{5} + \frac{(8 - 25)^2}{25} + \dots + \frac{(8 - 5)^2}{5} = 38.64$$
+
+After calculating the image of 38.64 under the chi-square cumulative distribution function for $n - 1$ degrees of freedom, we can see that $F_5(38.64) = 0.9999997$, which means that the $\text{p-value} = 1 - 0.9999997$ is smaller than our $\alpha$, and we can therefore reject our null hypothesis, meaning that the fact that the in the measured data fair coins were used is less than 5\%.
+And indeed, the obtained counts are from tests using two fair and three rigged coins with the probability of getting heads of $\frac{2}{3}$.
+After calculating the chi-square statistic for the hypothesis with rigged coins, we get $\chi^2 = 4.141$ and $F_5(4.141) = 0.4707$ and since $1 - 0.4707 > \alpha$, this hypothesis cannot be rejected.
+
+As the chi-square test is only an approximation and gets more precise with more data, expected values should be at least 5, and it is preferable that they are much higher. \cite{knuth81}
+
+For detection of random numbers, it is possible, for example, to create a column for each possible number, a column for ranges of numbers, or create a column for each remainder after division by a preselected number.
+Since the distribution of truly random numbers should be uniform, the expected value ($E_i$) should be the same for all columns. 
+When the null hypothesis of uniformity of the numbers with sufficiently small $\alpha$ gets rejected, we can assume that the numbers are not random enough.
 
 \section{Visualization}
 After classifying all disk sectors based on byte patterns and entropy, it all comes down to visualizing the gathered data.
 While it would be certainly possible to draw a histogram of all sectors' entropy values or a pie graph based on detected patterns, this would not be as illustrative as the chosen approach, and much of the information about sector position in the disk would be lost.
 That is why the resulting utility visualizes the data using a bitmap, where each pixel represents a single sector on a disk.
 
-Many works which were visualizing data used the most straightforward technique of \textit{scanning}. \cite{hargreaves13, charalampidis18, broz11}
+Many works which were visualizing data used the most straightforward technique of \textit{scanning}.\cite{hargreaves13, charalampidis18, broz11}
 This means that the first pixel is placed in the top-left corner, and each following pixel is placed to the right of the previous one except for when the position exceeds the fixed width of the image.
 In that case, the pixel is placed on the left-most position on the following line.
 This technique can be very illustrative in cases when the disk contains long sequences of equally classified sectors.
 However, when the disk would contain a shorter sequence, this would produce only a horizontal line with a single-pixel width, which could be hard to see and easily overlooked.
-That is why work \cite{cortesi11} used other, more complex, space-filling curves like the Z-order curve (also known as Morton curve) or Hilbert curve.
+That is why work\cite{cortesi11} used other, more complex, space-filling curves like the Z-order curve (also known as Morton curve) or Hilbert curve.
 Placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and become easily visible while keeping consecutive sectors close together.
 
 \chapter{Used tools}
@@ -284,8 +339,8 @@ I am also using this library to calculate the Kolmogorov–Smirnov test.
 
 %The library I chose for image manipulation is the Pillow library\cite{pillow}, which provides a simple image manipulation interface.
 
-\chapter{Entropy calculation}
-\chapter{Ways of visualization}
+% \chapter{Entropy calculation}
+% \chapter{Ways of visualization}.
 \chapter{Implementation}
 \chapter{Results}
 \chapter{Conclusion}
