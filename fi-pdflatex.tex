@@ -275,52 +275,226 @@ After classifying all disk sectors based on byte patterns and entropy, it all co
 While it would be certainly possible to draw a histogram of all sectors' entropy values or a pie graph based on detected patterns, this would not be as illustrative as the chosen approach, and much of the information about sector position in the disk would be lost.
 That is why the resulting utility visualizes the data using a bitmap, where each pixel represents a single sector on a disk.
 
-Many works which were visualizing data used the most straightforward technique of \textit{scanning}.\cite{hargreaves13, charalampidis18, broz11}
+Many works which were visualizing data used the most straightforward technique of \emph{sweeping}. \cite{hargreaves13, charalampidis18, broz11}
 This means that the first pixel is placed in the top-left corner, and each following pixel is placed to the right of the previous one except for when the position exceeds the fixed width of the image.
 In that case, the pixel is placed on the left-most position on the following line.
 This technique can be very illustrative in cases when the disk contains long sequences of equally classified sectors.
-However, when the disk would contain a shorter sequence, this would produce only a horizontal line with a single-pixel width, which could be hard to see and easily overlooked.
-That is why work\cite{cortesi11} used other, more complex, space-filling curves like the Z-order curve (also known as Morton curve) or Hilbert curve.
-Placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and become easily visible while keeping consecutive sectors close together.
+However, when the disk would contain a shorter sequence, this would produce only a horizontal line with a single-pixel width, which could be hard to see and easily overlooked. 
 
-\begin{figure}
+% That is why the work \cite{cortesi11} used the more complex Hilbert space-filling curve.
+% The Hilbert curve passes through every pixel in a square exactly once in such a recursive pattern which always keeps consecutive pixels next to each other.
+% Moreover, placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and aggregated into clusters which makes them more easily visible.
+% The curve covers a square with the side length of $2^i$ pixels (i.e., a total of $4^i$ pixels) where $i$ is the number of iterations.
+
+\begin{figure}[H]
+  \begin{center}
+    \begin{minipage}{.3\textwidth}
+      \begin{center}
+        \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 56pt]
+          \node[point](0)                {};
+          \node[point](1) [right of = 0] {};
+          \node[point](2) [below of = 0] {};
+          \node[point](3) [right of = 2] {};
+          \path
+            (0) edge node {} (2)
+            (3) edge node {} (1)
+            (2) edge node {} (3)
+            ;
+        \end{tikzpicture}
+      \end{center}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{.3\textwidth}
+      \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 28pt]
+        \node[point](0)                  {};
+        \node[point](1)  [right of = 0]  {};
+        \node[point](2)  [right of = 1]  {};
+        \node[point](3)  [right of = 2]  {};
+        \node[point](4)  [below of = 0]  {};
+        \node[point](5)  [right of = 4]  {};
+        \node[point](6)  [right of = 5]  {};        
+        \node[point](7)  [right of = 6]  {};
+        \node[point](8)  [below of = 4]  {};
+        \node[point](9)  [right of = 8]  {};
+        \node[point](10) [right of = 9]  {};
+        \node[point](11) [right of = 10] {};
+        \node[point](12) [below of = 8]  {};
+        \node[point](13) [right of = 12] {};
+        \node[point](14) [right of = 13] {};
+        \node[point](15) [right of = 14] {};
+        \path
+          (0) edge node {} (1)
+          (1) edge node {} (5)
+          (2) edge node {} (3)
+          (4) edge node {} (8)
+          (5) edge node {} (4)
+          (6) edge node {} (2)
+          (7) edge node {} (6)
+          (8) edge node {} (12)
+          (9) edge node {} (10)
+          (10) edge node {} (14)
+          (11) edge node {} (7)
+          (12) edge node {} (13)
+          (13) edge node {} (9)
+          (14) edge node {} (15) 
+          (15) edge node {} (11)
+          ;
+      \end{tikzpicture}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{.3\textwidth}
+      \begin{center}
+        \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 14pt]
+          \node[point](0)                    {};
+          \node[point](1)   [right of = 0]   {};
+          \node[point](2)   [right of = 1]   {};
+          \node[point](3)   [right of = 2]   {};
+          \node[point](4)   [right of = 3]   {};
+          \node[point](5)   [right of = 4]   {};
+          \node[point](6)   [right of = 5]   {};
+          \node[point](7)   [right of = 6]   {};
+          \node[point](8)   [below of = 0]   {};
+          \node[point](9)   [right of = 8]   {};
+          \node[point](10)  [right of = 9]   {};
+          \node[point](11)  [right of = 10]  {};
+          \node[point](12)  [right of = 11]  {};
+          \node[point](13)  [right of = 12]  {};
+          \node[point](14)  [right of = 13]  {};
+          \node[point](15)  [right of = 14]  {};
+          \node[point](16)  [below of = 8]   {};
+          \node[point](17)  [right of = 16]  {};
+          \node[point](18)  [right of = 17]  {};
+          \node[point](19)  [right of = 18]  {};
+          \node[point](20)  [right of = 19]  {};
+          \node[point](21)  [right of = 20]  {};
+          \node[point](22)  [right of = 21]  {};
+          \node[point](23)  [right of = 22]  {};
+          \node[point](24)  [below of = 16]  {};
+          \node[point](25)  [right of = 24]  {};
+          \node[point](26)  [right of = 25]  {};
+          \node[point](27)  [right of = 26]  {};
+          \node[point](28)  [right of = 27]  {};
+          \node[point](29)  [right of = 28]  {};
+          \node[point](30)  [right of = 29]  {};
+          \node[point](31)  [right of = 30]  {};
+          \node[point](32)  [below of = 24]  {};
+          \node[point](33)  [right of = 32]  {};
+          \node[point](34)  [right of = 33]  {};
+          \node[point](35)  [right of = 34]  {};
+          \node[point](36)  [right of = 35]  {};
+          \node[point](37)  [right of = 36]  {};
+          \node[point](38)  [right of = 37]  {};
+          \node[point](39)  [right of = 38]  {};
+          \node[point](40)  [below of = 32]  {};
+          \node[point](41)  [right of = 40]  {};
+          \node[point](42)  [right of = 41]  {};
+          \node[point](43)  [right of = 42]  {};
+          \node[point](44)  [right of = 43]  {};
+          \node[point](45)  [right of = 44]  {};
+          \node[point](46)  [right of = 45]  {};
+          \node[point](47)  [right of = 46]  {};
+          \node[point](48)  [below of = 40]  {};
+          \node[point](49)  [right of = 48]  {};
+          \node[point](50)  [right of = 49]  {};
+          \node[point](51)  [right of = 50]  {};
+          \node[point](52)  [right of = 51]  {};
+          \node[point](53)  [right of = 52]  {};
+          \node[point](54)  [right of = 53]  {};
+          \node[point](55)  [right of = 54]  {};
+          \node[point](56)  [below of = 48]  {};
+          \node[point](57)  [right of = 56]  {};
+          \node[point](58)  [right of = 57]  {};
+          \node[point](59)  [right of = 58]  {};
+          \node[point](60)  [right of = 59]  {};
+          \node[point](61)  [right of = 60]  {};
+          \node[point](62)  [right of = 61]  {};
+          \node[point](63)  [right of = 62]  {};
+          \path
+            (0) edge node {} (8)
+            (8) edge node {} (9)
+            (9) edge node {} (1)
+            (1) edge node {} (2)
+            (2) edge node {} (3)
+            (3) edge node {} (11)
+            (11) edge node {} (10)
+            (10) edge node {} (18)
+            (18) edge node {} (19)
+            (19) edge node {} (27)
+            (27) edge node {} (26)
+            (26) edge node {} (25)
+            (25) edge node {} (17)
+            (17) edge node {} (16)
+            (16) edge node {} (24)
+            (24) edge node {} (32)
+            (32) edge node {} (33)
+            (33) edge node {} (41)
+            (41) edge node {} (40)
+            (40) edge node {} (48)
+            (48) edge node {} (56)
+            (56) edge node {} (57)
+            (57) edge node {} (49)
+            (49) edge node {} (50)
+            (50) edge node {} (58)
+            (58) edge node {} (59)
+            (59) edge node {} (51)
+            (51) edge node {} (43)
+            (43) edge node {} (42)
+            (42) edge node {} (34)
+            (34) edge node {} (35)
+            (35) edge node {} (36)
+            (36) edge node {} (37)
+            (37) edge node {} (45)
+            (45) edge node {} (44)
+            (44) edge node {} (52)
+            (52) edge node {} (60)
+            (60) edge node {} (61)
+            (61) edge node {} (53)
+            (53) edge node {} (54)
+            (54) edge node {} (62)
+            (62) edge node {} (63)
+            (63) edge node {} (55)
+            (55) edge node {} (47)
+            (47) edge node {} (46)
+            (46) edge node {} (38)
+            (38) edge node {} (39)
+            (39) edge node {} (31)
+            (31) edge node {} (23)
+            (23) edge node {} (22)
+            (22) edge node {} (30)
+            (30) edge node {} (29)
+            (29) edge node {} (28)
+            (28) edge node {} (20)
+            (20) edge node {} (21)
+            (21) edge node {} (13)
+            (13) edge node {} (12)
+            (12) edge node {} (4)
+            (4) edge node {} (5)
+            (5) edge node {} (6)
+            (6) edge node {} (14)
+            (14) edge node {} (15)
+            (15) edge node {} (7)
+            ;
+        \end{tikzpicture}
+      \end{center}
+    \end{minipage}
+  \end{center}
+  \caption{the first three Hilbert curve iterations}
+  \label{fig:vishilbertiters}
+\end{figure}
+
+That is why the work \cite{cortesi11} used the more complex Hilbert space-filling curve.
+The Hilbert curve passes through every pixel in a square exactly once in such a recursive pattern which always keeps consecutive pixels next to each other.\cite{hilbert91}
+Moreover, placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and aggregated into clusters which makes them more easily visible.
+The curve covers a square with the side length of $2^i$ pixels (i.e., a total of $4^i$ pixels) where $i$ is the number of iterations.
+
+However, when using the Hilbert curve, another problem arises.
+There is no intuitive way to tell where the visualized sectors are located in the source image.
+
+\begin{figure}[H]
   \begin{center}
     \begin{minipage}{.3\textwidth}
     \begin{center}
       \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 14pt]
-        % \node[point](0){};
-        % \node[point](1)  [right of = 0]  {};
-        % \node[point](2)  [right of = 1]  {};
-        % \node[point](3)  [right of = 2]  {};
-        % \node[point](4)  [below of = 0]  {};
-        % \node[point](5)  [right of = 4]  {};
-        % \node[point](6)  [right of = 5]  {};        
-        % \node[point](7)  [right of = 6]  {};
-        % \node[point](8)  [below of = 4]  {};
-        % \node[point](9)  [right of = 8]  {};
-        % \node[point](10) [right of = 9]  {};
-        % \node[point](11) [right of = 10] {};
-        % \node[point](12) [below of = 8]  {};
-        % \node[point](13) [right of = 12] {};
-        % \node[point](14) [right of = 13] {};
-        % \node[point](15) [right of = 14] {};
-        % \path
-        %   (0) edge node {} (1)
-        %   (1) edge node {} (2)
-        %   (2) edge node {} (3)
-        %   (3) edge node {} (4)
-        %   (4) edge node {} (5)
-        %   (5) edge node {} (6)
-        %   (6) edge node {} (7)
-        %   (7) edge node {} (8)
-        %   (8) edge node {} (9)
-        %   (9) edge node {} (10)
-        %   (10) edge node {} (11)
-        %   (11) edge node {} (12)
-        %   (12) edge node {} (13)
-        %   (13) edge node {} (14)
-        %   (14) edge node {} (15) 
-        %   ;
           \node[point](0)                    {};
           \node[point](1)  [right of = 0]    {};
           \node[point](2)  [right of = 1]    {};
@@ -453,81 +627,10 @@ Placing pixels in these specific ways ensures that the shorter sequences are exp
       \end{tikzpicture}
       \end{center}
     \end{minipage}
-    % \hfill
-    % \begin{minipage}{.2\textwidth}
-    %   \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}]
-    %     \node[point](0){};
-    %     \node[point](1)  [right of = 0]  {};
-    %     \node[point](2)  [right of = 1]  {};
-    %     \node[point](3)  [right of = 2]  {};
-    %     \node[point](4)  [below of = 0]  {};
-    %     \node[point](5)  [right of = 4]  {};
-    %     \node[point](6)  [right of = 5]  {};        
-    %     \node[point](7)  [right of = 6]  {};
-    %     \node[point](8)  [below of = 4]  {};
-    %     \node[point](9)  [right of = 8]  {};
-    %     \node[point](10) [right of = 9]  {};
-    %     \node[point](11) [right of = 10] {};
-    %     \node[point](12) [below of = 8]  {};
-    %     \node[point](13) [right of = 12] {};
-    %     \node[point](14) [right of = 13] {};
-    %     \node[point](15) [right of = 14] {};
-    %     \path
-    %       (0) edge node {} (1)
-    %       (1) edge node {} (5)
-    %       (2) edge node {} (3)
-    %       (4) edge node {} (8)
-    %       (5) edge node {} (4)
-    %       (6) edge node {} (2)
-    %       (7) edge node {} (6)
-    %       (8) edge node {} (12)
-    %       (9) edge node {} (10)
-    %       (10) edge node {} (14)
-    %       (11) edge node {} (7)
-    %       (12) edge node {} (13)
-    %       (13) edge node {} (9)
-    %       (14) edge node {} (15) 
-    %       (15) edge node {} (11)
-    %       ;
-    %   \end{tikzpicture}
-    % \end{minipage}
     \hfill
     \begin{minipage}{.3\textwidth}
       \begin{center}
         \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 14pt]
-        % \node[point](0){};
-        % \node[point](1)  [right of = 0]  {};
-        % \node[point](2)  [right of = 1]  {};
-        % \node[point](3)  [right of = 2]  {};
-        % \node[point](4)  [below of = 0]  {};
-        % \node[point](5)  [right of = 4]  {};
-        % \node[point](6)  [right of = 5]  {};        
-        % \node[point](7)  [right of = 6]  {};
-        % \node[point](8)  [below of = 4]  {};
-        % \node[point](9)  [right of = 8]  {};
-        % \node[point](10) [right of = 9]  {};
-        % \node[point](11) [right of = 10] {};
-        % \node[point](12) [below of = 8]  {};
-        % \node[point](13) [right of = 12] {};
-        % \node[point](14) [right of = 13] {};
-        % \node[point](15) [right of = 14] {};
-        % \path
-        %   (0) edge node {} (1)
-        %   (1) edge node {} (4)
-        %   (2) edge node {} (3)
-        %   (3) edge node {} (6)
-        %   (4) edge node {} (5)
-        %   (5) edge node {} (2)
-        %   (6) edge node {} (7)
-        %   (7) edge node {} (8)
-        %   (8) edge node {} (9)
-        %   (9) edge node {} (12)
-        %   (10) edge node {} (11)
-        %   (11) edge node {} (14)
-        %   (12) edge node {} (13)
-        %   (13) edge node {} (10)
-        %   (14) edge node {} (15) 
-        %   ;
           \node[point](0)                    {};
           \node[point](1)  [right of = 0]    {};
           \node[point](2)  [right of = 1]    {};
@@ -797,204 +900,15 @@ Placing pixels in these specific ways ensures that the shorter sequences are exp
       \end{center}
     \end{minipage}
   \end{center}
-\caption{Orders from left: sweeping, 2x2 block sweeping, and 4x4 block sweeping}
+\caption{sweeping, 2x2 block sweeping, and 4x4 block sweeping}
   \label{fig:visorders}
 \end{figure}
-\begin{figure}
-  \begin{center}
-    \begin{minipage}{.3\textwidth}
-      \begin{center}
-        \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 56pt]
-          \node[point](0)                {};
-          \node[point](1) [right of = 0] {};
-          \node[point](2) [below of = 0] {};
-          \node[point](3) [right of = 2] {};
-          \path
-            (0) edge node {} (2)
-            (3) edge node {} (1)
-            (2) edge node {} (3)
-            ;
-        \end{tikzpicture}
-      \end{center}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{.3\textwidth}
-      \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 28pt]
-        \node[point](0)                  {};
-        \node[point](1)  [right of = 0]  {};
-        \node[point](2)  [right of = 1]  {};
-        \node[point](3)  [right of = 2]  {};
-        \node[point](4)  [below of = 0]  {};
-        \node[point](5)  [right of = 4]  {};
-        \node[point](6)  [right of = 5]  {};        
-        \node[point](7)  [right of = 6]  {};
-        \node[point](8)  [below of = 4]  {};
-        \node[point](9)  [right of = 8]  {};
-        \node[point](10) [right of = 9]  {};
-        \node[point](11) [right of = 10] {};
-        \node[point](12) [below of = 8]  {};
-        \node[point](13) [right of = 12] {};
-        \node[point](14) [right of = 13] {};
-        \node[point](15) [right of = 14] {};
-        \path
-          (0) edge node {} (1)
-          (1) edge node {} (5)
-          (2) edge node {} (3)
-          (4) edge node {} (8)
-          (5) edge node {} (4)
-          (6) edge node {} (2)
-          (7) edge node {} (6)
-          (8) edge node {} (12)
-          (9) edge node {} (10)
-          (10) edge node {} (14)
-          (11) edge node {} (7)
-          (12) edge node {} (13)
-          (13) edge node {} (9)
-          (14) edge node {} (15) 
-          (15) edge node {} (11)
-          ;
-      \end{tikzpicture}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{.3\textwidth}
-      \begin{center}
-        \begin{tikzpicture}[point/.style={circle,fill=blue!90,minimum size=4pt,inner sep=0pt}, node distance = 14pt]
-          \node[point](0)                    {};
-          \node[point](1)   [right of = 0]   {};
-          \node[point](2)   [right of = 1]   {};
-          \node[point](3)   [right of = 2]   {};
-          \node[point](4)   [right of = 3]   {};
-          \node[point](5)   [right of = 4]   {};
-          \node[point](6)   [right of = 5]   {};
-          \node[point](7)   [right of = 6]   {};
-          \node[point](8)   [below of = 0]   {};
-          \node[point](9)   [right of = 8]   {};
-          \node[point](10)  [right of = 9]   {};
-          \node[point](11)  [right of = 10]  {};
-          \node[point](12)  [right of = 11]  {};
-          \node[point](13)  [right of = 12]  {};
-          \node[point](14)  [right of = 13]  {};
-          \node[point](15)  [right of = 14]  {};
-          \node[point](16)  [below of = 8]   {};
-          \node[point](17)  [right of = 16]  {};
-          \node[point](18)  [right of = 17]  {};
-          \node[point](19)  [right of = 18]  {};
-          \node[point](20)  [right of = 19]  {};
-          \node[point](21)  [right of = 20]  {};
-          \node[point](22)  [right of = 21]  {};
-          \node[point](23)  [right of = 22]  {};
-          \node[point](24)  [below of = 16]  {};
-          \node[point](25)  [right of = 24]  {};
-          \node[point](26)  [right of = 25]  {};
-          \node[point](27)  [right of = 26]  {};
-          \node[point](28)  [right of = 27]  {};
-          \node[point](29)  [right of = 28]  {};
-          \node[point](30)  [right of = 29]  {};
-          \node[point](31)  [right of = 30]  {};
-          \node[point](32)  [below of = 24]  {};
-          \node[point](33)  [right of = 32]  {};
-          \node[point](34)  [right of = 33]  {};
-          \node[point](35)  [right of = 34]  {};
-          \node[point](36)  [right of = 35]  {};
-          \node[point](37)  [right of = 36]  {};
-          \node[point](38)  [right of = 37]  {};
-          \node[point](39)  [right of = 38]  {};
-          \node[point](40)  [below of = 32]  {};
-          \node[point](41)  [right of = 40]  {};
-          \node[point](42)  [right of = 41]  {};
-          \node[point](43)  [right of = 42]  {};
-          \node[point](44)  [right of = 43]  {};
-          \node[point](45)  [right of = 44]  {};
-          \node[point](46)  [right of = 45]  {};
-          \node[point](47)  [right of = 46]  {};
-          \node[point](48)  [below of = 40]  {};
-          \node[point](49)  [right of = 48]  {};
-          \node[point](50)  [right of = 49]  {};
-          \node[point](51)  [right of = 50]  {};
-          \node[point](52)  [right of = 51]  {};
-          \node[point](53)  [right of = 52]  {};
-          \node[point](54)  [right of = 53]  {};
-          \node[point](55)  [right of = 54]  {};
-          \node[point](56)  [below of = 48]  {};
-          \node[point](57)  [right of = 56]  {};
-          \node[point](58)  [right of = 57]  {};
-          \node[point](59)  [right of = 58]  {};
-          \node[point](60)  [right of = 59]  {};
-          \node[point](61)  [right of = 60]  {};
-          \node[point](62)  [right of = 61]  {};
-          \node[point](63)  [right of = 62]  {};
-          \path
-            (0) edge node {} (8)
-            (8) edge node {} (9)
-            (9) edge node {} (1)
-            (1) edge node {} (2)
-            (2) edge node {} (3)
-            (3) edge node {} (11)
-            (11) edge node {} (10)
-            (10) edge node {} (18)
-            (18) edge node {} (19)
-            (19) edge node {} (27)
-            (27) edge node {} (26)
-            (26) edge node {} (25)
-            (25) edge node {} (17)
-            (17) edge node {} (16)
-            (16) edge node {} (24)
-            (24) edge node {} (32)
-            (32) edge node {} (33)
-            (33) edge node {} (41)
-            (41) edge node {} (40)
-            (40) edge node {} (48)
-            (48) edge node {} (56)
-            (56) edge node {} (57)
-            (57) edge node {} (49)
-            (49) edge node {} (50)
-            (50) edge node {} (58)
-            (58) edge node {} (59)
-            (59) edge node {} (51)
-            (51) edge node {} (43)
-            (43) edge node {} (42)
-            (42) edge node {} (34)
-            (34) edge node {} (35)
-            (35) edge node {} (36)
-            (36) edge node {} (37)
-            (37) edge node {} (45)
-            (45) edge node {} (44)
-            (44) edge node {} (52)
-            (52) edge node {} (60)
-            (60) edge node {} (61)
-            (61) edge node {} (53)
-            (53) edge node {} (54)
-            (54) edge node {} (62)
-            (62) edge node {} (63)
-            (63) edge node {} (55)
-            (55) edge node {} (47)
-            (47) edge node {} (46)
-            (46) edge node {} (38)
-            (38) edge node {} (39)
-            (39) edge node {} (31)
-            (31) edge node {} (23)
-            (23) edge node {} (22)
-            (22) edge node {} (30)
-            (30) edge node {} (29)
-            (29) edge node {} (28)
-            (28) edge node {} (20)
-            (20) edge node {} (21)
-            (21) edge node {} (13)
-            (13) edge node {} (12)
-            (12) edge node {} (4)
-            (4) edge node {} (5)
-            (5) edge node {} (6)
-            (6) edge node {} (14)
-            (14) edge node {} (15)
-            (15) edge node {} (7)
-            ;
-        \end{tikzpicture}
-      \end{center}
-    \end{minipage}
-  \end{center}
-  \caption{One, two, and three iterations of the Hilbert curve}
-  \label{fig:vishilbertiters}
-\end{figure}
+
+A middle ground between simple sweeping and the Hilbert curve would be block-sweeping.
+Block-sweeping uses the sweeping method to fill up a square NxN pixels in size, then continues to another NxN pixel block and places these pixel blocs in the same way simple sweeping would place individual pixels.
+This means that sweeping is just a version of block-sweeping, with pixel blocks of 1x1 pixels.
+By employing this technique, most shorter sequences are still more pronounced by getting expanded into multiple lines, and the position of pixels in the image more closely resembles the sector position in the source image than in the Hilbert curve.
+However, same as with sweeping, consecutive sectors are not always guaranteed to be right next to each other.
 
 \chapter{Used tools}
 %\section{Programming language}
@@ -1009,33 +923,63 @@ Placing pixels in these specific ways ensures that the shorter sequences are exp
 %Even though I've taken multiple courses on C, I didn't feel confident enough to write this utility entirely in C because of my lack of experience working with external C libraries and writing programs with hundreds of lines that are also meant to be expanded on.
 
 %Based on all of this, I chose Python.
-\section{Python}
-I chose Python 3\cite{python} based on several factors.
-The most significant factor was subjective -- my comfortability with the language.
-Based on this, my decision was mainly between C and Python.
+% \section{Python}
+% I chose Python 3\cite{python} based on several factors.
+% The most significant factor was subjective -- my comfortability with the language.
+% Based on this, my decision was mainly between C and Python.
 
-Another factor is efficiency.
-While this utility is not time-sensitive and has no real-time constraints, its efficiency is very desirable and can be the difference between analysis taking minutes and taking hours or even days.
-Here, C is the obvious winner.
-However, Python enables C integration\cite{python-extend}, which could be used to implement parts of code called tens of millions of times to speed up the utility's performance.
+% Another factor is efficiency.
+% While this utility is not time-sensitive and has no real-time constraints, its efficiency is very desirable and can be the difference between analysis taking minutes and taking hours or even days.
+% Here, C is the obvious winner.
+% However, Python enables C integration\cite{python-extend}, which could be used to implement parts of code called tens of millions of times to speed up the utility's performance.
 
-Another consideration is the extensibility of the written code. One of my goals is to make the code as extensible as possible. While it is certainly possible to make easily extensible code in C, I did not feel confident enough to do it well.
+% Another consideration is the extensibility of the written code. One of my goals is to make the code as extensible as possible. While it is certainly possible to make easily extensible code in C, I did not feel confident enough to do it well.
 
-The next significant consideration was the availability of other tools and built-in libraries.
-Python provides a wide range of built-in modules, making programming easier like argparse\cite{argparse} and collections\cite{collections} while also having many other installable libraries, which are mostly platform-independent.
+% The next significant consideration was the availability of other tools and built-in libraries.
+% Python provides a wide range of built-in modules, making programming easier like argparse\cite{argparse} and collections\cite{collections} while also having many other installable libraries, which are mostly platform-independent.
 % C also has many helpful libraries, but many are platform-dependent and might not be available for other distributions.
 \section{Pillow}
 
 Pillow\cite{pillow} is an image manipulation library for Python, which is a fork of the discontinued library PIL\cite{pil}.
+This library is used to visualize the analysis results.
+Since the results should be visualized as an image, where each pixel represents a single disk sector, statistical visualization libraries like Matplotlib\cite{matplotlib}, seaborn\cite{waskom21}, or Gnuplot\cite{gnuplot} were not good choices as they were not created with this exact type of visualization in mind.
+While they provide the means to create such visualizations, they are not as straightforward as the means provided by Pillow.
+While Pillow offers many more features beyond the very basics needed, it still keeps the interface for drawing one pixel at a time very simple. 
 
-I am using this library to visualize the analysis results.
-Since I decided on the approach of visualizing the results as an image, where each pixel represents a single disk sector, statistical visualization libraries like Matplotlib\cite{matplotlib}, seaborn\cite{waskom21}, or Gnuplot\cite{gnuplot} were not good choices as they were not created with this exact type of visualization in mind and while they provide the means to create such visualizations, they are not as straightforward as the means provided by Pillow.
-While Pillow offers many more features beyond the very basics needed, it still keeps the interface for drawing one pixel at a time very simple.
+\subsection{Image}
 
-\section{Scipy}
-Scipy\cite{scipy20} is a Python library for scientific computing.
-I am using this library to calculate the boundaries of the chi-square statistic of random data with inverse cumulative distribution function for the chi-square distribution based on given degrees of freedom ($2^\text{number of bits of values} - 1$) and provided p-value boundaries.
-I am also using this library to calculate the Kolmogorov–Smirnov test.
+The module \texttt{PIL.Image} provides an essential toolkit for manipulating images.
+Given the image mode (e.g., RGB or RGBA) and image size, function \texttt{Image.new} creates an instance of the \texttt{PIL.Image.Image} class.
+The \texttt{Image} class stores the state of the resulting image and can be modified using its methods. 
+
+The method \texttt{Image.putpixel} modifies the state of the Image object and changes the color of the pixel on the given coordinates to the given color.
+\texttt{Image.save} tries to store the image on the provided path, and the method \texttt{Image.close} releases allocated memory. \cite{pillowimage}
+
+\subsection{ImageDraw}
+
+The module \texttt{PIL.ImageDraw} is used to modify the \texttt{Image} class from \texttt{PIL.Image} in more powerful ways than just changing single pixels.
+Function \texttt{ImageDraw.Draw} creates a special context object for the given \texttt{Image} object, which can be used for further inplace modifications.
+The class of the context object \texttt{ImageDraw.ImageDraw} provides a wide range of shape drawing methods.
+
+The method \texttt{ImageDraw.rectangle}, allows for drawing rectangle for provided coordinates and colors. It is also possible to specify the width and color of the rectangle outline. The method \texttt{ImageDraw.text} allows for writing a provided string in a font on the image. Both of these methods can be used for drawing the image legend. \cite{pillowimagedraw}
+
+\subsection{ImageFont}
+
+The module \texttt{ImageFont} is used with working with fonts with the Pillow library.
+It provides the means to load installed fonts by name or from path using the function \texttt{ImageFont.load} or to load a fallback font in case no other font is found with function \texttt{ImageFont.load\_default}.
+Both of these functions return a \texttt{ImageFont.ImageFont} object, which contains a method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
+
+
+% Pillow\cite{pillow} is an image manipulation library for Python, which is a fork of the discontinued library PIL\cite{pil}.
+
+% I am using this library to visualize the analysis results.
+% Since I decided on the approach of visualizing the results as an image, where each pixel represents a single disk sector, statistical visualization libraries like Matplotlib\cite{matplotlib}, seaborn\cite{waskom21}, or Gnuplot\cite{gnuplot} were not good choices as they were not created with this exact type of visualization in mind and while they provide the means to create such visualizations, they are not as straightforward as the means provided by Pillow.
+% While Pillow offers many more features beyond the very basics needed, it still keeps the interface for drawing one pixel at a time very simple.
+
+% \section{Scipy}
+% Scipy\cite{scipy20} is a Python library for scientific computing.
+% I am using this library to calculate the boundaries of the chi-square statistic of random data with inverse cumulative distribution function for the chi-square distribution based on given degrees of freedom ($2^\text{number of bits of values} - 1$) and provided p-value boundaries.
+% I am also using this library to calculate the Kolmogorov–Smirnov test.
 %Since I intended to visualize the sectors using a bitmap, I needed a tool to generate these images.
 %One option was to use libraries and utilities like matplotlib\cite{matplotlib} or gnuplot\cite{gnuplot}.
 
@@ -1594,13 +1538,14 @@ I am also using this library to calculate the Kolmogorov–Smirnov test.
 % alphabet) may be used instead of \texttt{texindy}. In either case,
 % the index will be ill-sorted.
 
-%   \makeatletter\thesis@blocks@clear\makeatother
+\makeatletter\thesis@blocks@clear\makeatother
 %   \phantomsection %% Print the index and insert it into the
-%   \addcontentsline{toc}{chapter}{\indexname} %% table of contents.
+\addcontentsline{toc}{chapter}{\indexname} %% table of contents.
 %   \printindex
 
 % \appendix %% Start the appendices.
 % \chapter{An appendix}
 % Here you can insert the appendices of your thesis.
+\sloppy
 \printbibliography
 \end{document}
