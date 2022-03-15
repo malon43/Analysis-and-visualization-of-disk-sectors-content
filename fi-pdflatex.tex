@@ -969,12 +969,13 @@ The module \texttt{ImageFont} is used with working with fonts with the Pillow li
 It provides the means to load installed fonts by name or from path using the function \texttt{ImageFont.load} or to load a fallback font in case no other font is found with function \texttt{ImageFont.load\_default}.
 Both of these functions return a \texttt{ImageFont.ImageFont} object, which contains a method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
 
-
 % Pillow\cite{pillow} is an image manipulation library for Python, which is a fork of the discontinued library PIL\cite{pil}.
 
 % I am using this library to visualize the analysis results.
 % Since I decided on the approach of visualizing the results as an image, where each pixel represents a single disk sector, statistical visualization libraries like Matplotlib\cite{matplotlib}, seaborn\cite{waskom21}, or Gnuplot\cite{gnuplot} were not good choices as they were not created with this exact type of visualization in mind and while they provide the means to create such visualizations, they are not as straightforward as the means provided by Pillow.
 % While Pillow offers many more features beyond the very basics needed, it still keeps the interface for drawing one pixel at a time very simple.
+
+\section{Scipy}
 
 % \section{Scipy}
 % Scipy\cite{scipy20} is a Python library for scientific computing.
