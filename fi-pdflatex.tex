@@ -958,16 +958,16 @@ The method \texttt{Image.putpixel} modifies the state of the Image object and ch
 \subsection{ImageDraw}
 
 The module \texttt{PIL.ImageDraw} is used to modify the \texttt{Image} class from \texttt{PIL.Image} in more powerful ways than just changing single pixels.
-Function \texttt{ImageDraw.Draw} creates a special context object for the given \texttt{Image} object, which can be used for further inplace modifications.
+Function \texttt{ImageDraw.Draw} creates a special context object for the given \texttt{Image} object, which can be used for further in-place modifications.
 The class of the context object \texttt{ImageDraw.ImageDraw} provides a wide range of shape drawing methods.
 
 The method \texttt{ImageDraw.rectangle}, allows for drawing rectangle for provided coordinates and colors. It is also possible to specify the width and color of the rectangle outline. The method \texttt{ImageDraw.text} allows for writing a provided string in a font on the image. Both of these methods can be used for drawing the image legend. \cite{pillowimagedraw}
 
 \subsection{ImageFont}
 
-The module \texttt{ImageFont} is used with working with fonts with the Pillow library.
+The module \texttt{ImageFont} is used for working with fonts with the Pillow library.
 It provides the means to load installed fonts by name or from path using the function \texttt{ImageFont.load} or to load a fallback font in case no other font is found with function \texttt{ImageFont.load\_default}.
-Both of these functions return a \texttt{ImageFont.ImageFont} object, which contains a method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
+Both of these functions return an \texttt{ImageFont.ImageFont} object, which contains a method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
 
 % Pillow\cite{pillow} is an image manipulation library for Python, which is a fork of the discontinued library PIL\cite{pil}.
 
@@ -976,6 +976,15 @@ Both of these functions return a \texttt{ImageFont.ImageFont} object, which cont
 % While Pillow offers many more features beyond the very basics needed, it still keeps the interface for drawing one pixel at a time very simple.
 
 \section{Scipy}
+SciPy\cite{scipy20} is a Python library for scientific computing.
+This library is used to calculate the inverse cumulative distribution function for the chi-squared distribution.
+SciPy provides a couple of different modules, but only one was used in the implementation.
+
+\subsection{stats}
+The module \texttt{stats} can be used to calculate values of many discrete\cite{scipydescrete} or continuous\cite{scipycontinuous} statistical distributions, including the chi-squared distribution.
+The module provides callable object \texttt{stats.chi2.ppf}, which calculates the percentile point function (inverse cumulative distribution function) for given probability and degrees of freedom.\cite{scipystatschi2}
+The resulting value is then used as the threshold or limit for when the results of the chi-square statistic are significant and should therefore be marked as \emph{too random} or \emph{not random}.
+
 
 % \section{Scipy}
 % Scipy\cite{scipy20} is a Python library for scientific computing.
