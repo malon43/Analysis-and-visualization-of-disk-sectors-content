@@ -201,6 +201,7 @@ In order to precisely differentiate random data, the provided samples would need
 However, we can at least get an estimate using the techniques described in this subsection.
 
 \subsubsection{Entropy}
+\label{sss:entropy}
 Shannon's entropy calculates the amount of information in bits provided by each byte value in the sector.\cite{shannon48}
 For example, the entropy of 8 bits means that every byte value is contained the same number of times (i.e., exactly $\frac{s}{256}$ times).
 Whereas the entropy value of 0 means that only a single byte value is contained and is repeated through the whole sector. Shannon's entropy can be calculated using:
@@ -231,6 +232,7 @@ The work concluded by recommending the Miller-Madow method for uniform byte valu
 Entropy estimation will be helpful when considering the efficiency and speed of the entropy calculation.
 
 \subsubsection{Chi-squared test}
+\label{sss:chi2test}
 The chi-squared test or $\chi^2$ test is used to determine whether or not the data fit our expectations.\cite{pearson00}
 For example, consider flipping five fair coins and counting flipped heads.
 The probability distribution of the results (assuming that the coins cannot land on their side) would look like this:
@@ -269,6 +271,12 @@ As the chi-square test is only an approximation and gets more precise with more 
 For detection of random numbers, it is possible, for example, to create a column for each possible number, a column for ranges of numbers, or create a column for each remainder after division by a preselected number.
 Since the distribution of truly random numbers should be uniform, the expected value ($E_i$) should be the same for all columns. 
 When the null hypothesis of uniformity of the numbers with sufficiently small $\alpha$ gets rejected, we can assume that the numbers are not random enough.
+
+However, the same counting-up problem as with Shannon's entropy arises.
+When each number is represented the same number of times, the chi-squared statistic for uniform distribution is equal to zero.
+The image of 0 for any number of degrees of freedom is 0, giving the p-value of 1, meaning the hypothesis cannot be rejected.
+As having the random numbers very close to the expected distribution is very unlikely, it is possible to counteract this by also rejecting when the $\text{pvalue} > 1 - \alpha$.\cite{knuth81}
+This way, all number sequences the chi-squared statistics of which would be less likely than $\alpha$ will be rejected.
 
 \section{Visualization}
 After classifying all disk sectors based on byte patterns and entropy, it all comes down to visualizing the gathered data.
@@ -1008,6 +1016,52 @@ The resulting value is then used as the threshold or limit for when the results 
 % \chapter{Entropy calculation}
 % \chapter{Ways of visualization}.
 \chapter{Implementation}
+...description of the chapter... % TODO
+
+The utility reads the provided disk image in blocks of the provided block size, analyzes the read data, and passes the results alongside information about the position of the read block to the visualization class.
+
+\section{Analysis}
+...describe section and the fact that it is a class... % TODO
+
+\subsection{Entropy}
+
+The provided buffer's Shannon entropy can be calculated using the formula mentioned in \textbf{\nameref{sss:entropy}}.
+However, since $P(x_i) = \frac{c_i}{s}$ where $c_i$ is the number of times the value $i$ was in the buffer and $s$ is the unchanging sector size, the formula for normalized entropy can be simplified to
+$$-\frac{1}{8s}\sum_{i=0}^{255}(c_i * \log_2(c_i)) + \log_2(s)$$
+The counts $c_i$ are calculated using \texttt{Counter} from the \texttt{collections} module\cite{collections}.
+The fact that the Counter object only iterates over nonzero counts does not matter.
+By the entropy definition, the impossible results should not affect it.
+
+However, Shannon's entropy is not a statistical test, and its results are not used to distinguish between random and not random.
+Therefore there are no levels of significance, and the analysis result is just a number from the range 0-1.
+While this analysis is not helpful to recognize random from non-random data at a glance, it can illustrate whether sectors with similar entropy (and therefore with similar file contents) are stored next to each other.
+Image generated with Shannon's entropy can be found HERE.   % TODO
+
+\subsection{Chi-square}
+
+The implementation includes multiple options for analyzing by chi-square test.
+Each option takes $n$ consecutive bits and treats it as a separate number.
+If the sector size is not a multiple of $n$, the remaining bits are ignored.
+
+The chi-square statistic can be calculated using the formula mentioned in \textbf{\nameref{sss:chi2test}}.
+As the numbers should be from the uniform distribution and the expected count for each value should be the same, the formula can be modified to
+$$\frac{1}{E}\sum_{i = 0}^{2^n - 1}((X_i - E)^2)$$
+where $E$ is the expected count of each number and can be calculated using 
+$$E = \frac{\lfloor\frac{8s}{n}\rfloor}{2^n}$$
+where $s$ is the sector size in bytes.
+
+Each option, while easily generalizable, is implemented separately due to possible speed improvements. 
+(i.e., there is no need for reading a byte bit per bit and then merging the bits into an eight-bit number again, however for $n = 3$, there is no such easy workaround)
+\texttt{chi2-8} simply counts each byte value, \texttt{chi2-4} separates the byte values into halves using the python bitwise \texttt{\&} and \texttt{>>} operators, \texttt{chi2-3} goes through each byte bit-by-bit, and \texttt{chi2-1} uses the \texttt{int.bit\_count method} to get the number of bits set to 1 in the byte value.
+
+Each method first precalculates limits for the chi-square statistic, for which the sector is marked as \emph{suspiciously random}, \emph{random}, or \emph{not random}.
+Then for each sector, its statistic is compared to these limits, and a matching output flag is selected.
+All methods also check for single-byte patterns. The most common ones (i.e., 0x00 and 0xFF) are always checked.
+However, all other single-byte patterns are checked only by \texttt{chi2-8} and \texttt{chi2-4}.
+These two implementations were already counting the number of bytes, and this check could be done with a minimal additional performance penalty.
+Finding the other single-byte patterns is not essential as they are not likely to be contained unless they are part of an unencrypted stored file, which will almost always be marked as \emph{not random} by the analysis.
+The only exception is with \texttt{chi2-1} for the seventy byte patterns, which contain an equal number of zeroes and ones, in which case the sector will be marked as \emph{suspiciously random}.
+
 \chapter{Results}
 \chapter{Conclusion}
 
