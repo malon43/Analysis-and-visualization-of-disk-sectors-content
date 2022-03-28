@@ -487,11 +487,11 @@ However, when the disk would contain a shorter sequence, this would produce only
     \end{minipage}
   \end{center}
   \caption{the first three Hilbert curve iterations}
-  \label{fig:vishilbertiters}
+  \label{fig:hilbertiters}
 \end{figure}
 
 That is why the work \cite{cortesi11} used the more complex Hilbert space-filling curve.
-The Hilbert curve passes through every pixel in a square exactly once in such a recursive pattern which always keeps consecutive pixels next to each other.\cite{hilbert91}
+The Hilbert curve passes through every pixel in a square exactly once in such a recursive pattern for which consecutive pixels always share one side.\cite{hilbert91}
 Moreover, placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and aggregated into clusters which makes them more easily visible.
 The curve covers a square with the side length of $2^i$ pixels (i.e., a total of $4^i$ pixels) where $i$ is the number of iterations.
 
@@ -1016,12 +1016,16 @@ The resulting value is then used as the threshold or limit for when the results 
 % \chapter{Entropy calculation}
 % \chapter{Ways of visualization}.
 \chapter{Implementation}
-...description of the chapter... % TODO
+This chapter focuses on the individual parts of the implementation.
+%...rest of the description of the chapter... % TODO
 
 The utility reads the provided disk image in blocks of the provided block size, analyzes the read data, and passes the results alongside information about the position of the read block to the visualization class.
 
 \section{Analysis}
-...describe section and the fact that it is a class... % TODO
+The utility provides a number of analysis methods.
+These methods are each implemented as a class.
+Each analysis class implements a \texttt{calc} method, which analyzes the provided buffer and returns the results.
+The results take the form of a tuple and contain: detected randomness from the range $\langle0,1\rangle$, result flag, and a possible result argument (used to pass the single-byte patterns if found).
 
 \subsection{Entropy}
 
@@ -1029,18 +1033,18 @@ The provided buffer's Shannon entropy can be calculated using the formula mentio
 However, since $P(x_i) = \frac{c_i}{s}$ where $c_i$ is the number of times the value $i$ was in the buffer and $s$ is the unchanging sector size, the formula for normalized entropy can be simplified to
 $$-\frac{1}{8s}\sum_{i=0}^{255}(c_i * \log_2(c_i)) + \log_2(s)$$
 The counts $c_i$ are calculated using \texttt{Counter} from the \texttt{collections} module\cite{collections}.
-The fact that the Counter object only iterates over nonzero counts does not matter.
+The fact that the \texttt{Counter} object only iterates over nonzero counts does not matter.
 By the entropy definition, the impossible results should not affect it.
 
 However, Shannon's entropy is not a statistical test, and its results are not used to distinguish between random and not random.
 Therefore there are no levels of significance, and the analysis result is just a number from the range 0-1.
 While this analysis is not helpful to recognize random from non-random data at a glance, it can illustrate whether sectors with similar entropy (and therefore with similar file contents) are stored next to each other.
-Image generated with Shannon's entropy can be found HERE.   % TODO
+Image generated with Shannon's entropy can be found in the figure FIGURE.   % TODO
 
 \subsection{Chi-square}
 
-The implementation includes multiple options for analyzing by chi-square test.
-Each option takes $n$ consecutive bits and treats it as a separate number.
+The implementation includes multiple options for analysis by chi-square test.
+Each option takes $n$ consecutive bits and treats them as a separate number.
 If the sector size is not a multiple of $n$, the remaining bits are ignored.
 
 The chi-square statistic can be calculated using the formula mentioned in \textbf{\nameref{sss:chi2test}}.
@@ -1051,8 +1055,8 @@ $$E = \frac{\lfloor\frac{8s}{n}\rfloor}{2^n}$$
 where $s$ is the sector size in bytes.
 
 Each option, while easily generalizable, is implemented separately due to possible speed improvements. 
-(i.e., there is no need for reading a byte bit per bit and then merging the bits into an eight-bit number again, however for $n = 3$, there is no such easy workaround)
-\texttt{chi2-8} simply counts each byte value, \texttt{chi2-4} separates the byte values into halves using the python bitwise \texttt{\&} and \texttt{>>} operators, \texttt{chi2-3} goes through each byte bit-by-bit, and \texttt{chi2-1} uses the \texttt{int.bit\_count method} to get the number of bits set to 1 in the byte value.
+(i.e., there is no need for reading a byte bit per bit and then merging the bits into an eight-bit number again; however, for $n = 3$, there is no such easy workaround)
+\texttt{chi2-8} simply counts each byte value, \texttt{chi2-4} separates the byte values into halves using the python bitwise \texttt{\&} and \texttt{>{>}} operators, \texttt{chi2-3} goes through each byte bit-by-bit, and \texttt{chi2-1} uses the \texttt{int.bit\_count method} to get the number of bits set to 1 in the byte value.
 
 Each method first precalculates limits for the chi-square statistic, for which the sector is marked as \emph{suspiciously random}, \emph{random}, or \emph{not random}.
 Then for each sector, its statistic is compared to these limits, and a matching output flag is selected.
@@ -1061,6 +1065,61 @@ However, all other single-byte patterns are checked only by \texttt{chi2-8} and 
 These two implementations were already counting the number of bytes, and this check could be done with a minimal additional performance penalty.
 Finding the other single-byte patterns is not essential as they are not likely to be contained unless they are part of an unencrypted stored file, which will almost always be marked as \emph{not random} by the analysis.
 The only exception is with \texttt{chi2-1} for the seventy byte patterns, which contain an equal number of zeroes and ones, in which case the sector will be marked as \emph{suspiciously random}.
+
+\section{Output and visualization}
+
+Each output method is implemented in the form of a class.
+Each output class should implement the following three methods.
+\begin{itemize}
+    \item Method \texttt{output} for taking the analysis output and storing it.
+    \item Method \texttt{error} to be run in case of an error to display it.
+    \item Method \texttt{exit}, which is run before the program terminates to close any open data streams and save stored data into files.
+\end{itemize}
+Each output class can have an attribute \texttt{default\_parameters}, which is a mapping of a parameter name to \texttt{Parameter} dataclass, which stores the type of the parameter, default value, help string, and can also store string description of the default value and list of available options.
+
+\subsection{Text output}
+
+The utility, while being primarily intended for visualization, also implements two methods for text output.
+
+The first one is \texttt{sample-output}, which just formats the analysis output of each sector on a seperate line as follows: <sector number> (<sector offset>) - <randomness>, <result flag> (pattern of: <single-byte pattern if present>)
+
+The second method, \texttt{csv}, outputs the analysis result as a CSV file.
+The script \texttt{from\_csv.py} can later use this CSV file to generate a visualization using the other output methods without analyzing the disk image again.
+
+\subsection{Image output}
+
+The result of all Image output methods is a bitmap, where each pixel represents the result of an analysis of one sector.
+The image is created using the Pillow library.
+All image output methods also show the legend for colors by default.
+
+Using the command line arguments, the user can change the image's color palette, background color, and legend text color.
+When specifying the background color but not the text color, the text color is determined automatically using the contrast ratio and the relative luminance in accordance with W3 guidelines.\cite{w3guidelines}
+
+Since the image needs to fit all of the sectors and the number of sectors can vary between different disk images, it is essential to have varying proportions of the output images.
+
+\subsection{Sweeping and block sweeping}
+
+The user can set both the image width and sweeping block size.
+When both are provided, it is only checked that width is a multiple of sweeping block size.
+When only width is provided, the smallest divisor of width larger or equal to 32 but smaller than square root of width is set as the sweeping block size.
+If no such number exists largest divisor of width smaller than 32 is used.
+The utility tries to form a rectangle closest to a square if the width is not defined.
+In this case, the sweeping block size is set to 32 if not specified.
+
+Sweeping is a special case of block sweeping with the sweeping block size set to 1.
+
+\subsection{Hilbert curve}
+
+For the Hilbert curve, the image size can only be determined automatically.
+The smallest single curve which would fit all the sectors needs to have precisely $i = \lceil\log_4(\text{number of sectors})\rceil$ iterations.
+However, it is possible to put multiple Hilbert curves under each other and chain them together.
+Therefore the implementation first checks whether up to three smaller curves (i.e., curves with $i - 1$ iterations) could fit all the sectors.
+If that is the case, width is set to $2^{i - 1}$ and height to the needed number of curves in half-curve-width increments.
+Otherwise, the calculated number of iterations is used.
+And therefore, the height and width are the same and equal to $2^i$.
+
+In order to chain multiple Hilbert curves under each other and still keep the locality-preserving properties, the curves portrayed in the figure \ref{fig:hilbertiters} need to be mirrored along their top-left to bottom-right diagonals.
+This can be simply achieved by swapping the x and y coordinates.
 
 \chapter{Results}
 \chapter{Conclusion}
