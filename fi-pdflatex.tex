@@ -32,7 +32,7 @@
   main=english, %% By using `czech` or `slovak` as the main locale
                 %% instead of `english`, you can typeset the thesis
                 %% in either Czech or Slovak, respectively.
-  english, german, russian, czech, slovak, %% The additional keys allow
+  english %% The additional keys allow
 ]{babel}        %% foreign texts to be typeset as follows:
 %%
 %%   \begin{otherlanguage}{german}  ... \end{otherlanguage}
@@ -97,6 +97,8 @@
   commentstyle    = \itshape\color{magenta},
   breaklines      = true,
 }
+\usepackage{caption}
+\usepackage[font=normalsize]{subcaption}
 \usepackage{floatrow} %% Putting captions above tables
 \floatsetup[table]{capposition=top}
 \usepackage[babel]{csquotes} %% Context-sensitive quotation marks
@@ -180,9 +182,9 @@ Sectors of empty new drives would be mostly initialized with a pattern of zeroes
 Most recent drives use 4KiB sized sectors, also known as Advanced Format, but still provide backward compatibility with older systems which expect 512B sector size with 512B sector size emulation.\cite{seagate}
 
 Sector byte pattern is a specific configuration of bytes, which would indicate what this sector is used for.
-For example, a repeated pattern of byte x00 often signalizes that this sector has not been used yet, that the blocks have been freed by the TRIM command.
+For example, a repeated pattern of byte \texttt{x00} often signalizes that this sector has not been used yet, that the blocks have been freed by the TRIM command.
 The TRIM command is used by the software to inform the drive which sectors no longer contain user data in order to increase performance.\cite{mcmillen21}
-Or, bytes x55xAA at the end of the sector would signalize a block containing master boot record (MBR).
+Or, bytes \texttt{x55xAA} at the end of the sector would signalize a block containing master boot record (MBR).
 However, while in many cases, analysis for positions of bytes is not as time-intensive as analysis of randomness or single-byte patterns, multiple problems show up:
 \begin{itemize}
     \item Testing for many positions and byte configuration will add up.
@@ -206,7 +208,7 @@ Shannon's entropy calculates the amount of information in bits provided by each 
 For example, the entropy of 8 bits means that every byte value is contained the same number of times (i.e., exactly $\frac{s}{256}$ times).
 Whereas the entropy value of 0 means that only a single byte value is contained and is repeated through the whole sector. Shannon's entropy can be calculated using:
 $$H(S) = -\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
-Where $P(x_i)$ represents the probability of byte value $i$ (i.e., number of times value $i$ appears in the sector divided by the number of all bytes in the sector). Which can be then normalized:
+Where $P(x_i)$ represents the probability of byte value $i$ (i.e., the number of times value $i$ appears in the sector divided by the number of all bytes in the sector). Which can be then normalized:
 
 $$\mu (S) = \frac{H}{H_{max}} = -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
 
@@ -218,7 +220,7 @@ However,  multiple problems arise when using Shannon's entropy.
 There is no simple line where all sectors with a higher entropy are encrypted, and all with lower entropy are not.
 That means that most sectors containing compressed file formats like videos, jpeg images, or zip files will be almost indistinguishable from encrypted sectors by entropy.
 Another problem is that Shannon's entropy completely disregards the order of values.
-For example, simple counting up (x00 x01 ... xFE xFF) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
+For example, simple counting up (\texttt{x00 x01} ... \texttt{xFE xFF}) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
 
 Most works I found that attempted to use entropy calculation to classify small data samples used Shannon's entropy despite its drawbacks mentioned above.
 However, each work aimed to use the calculated entropy differently.
@@ -912,8 +914,8 @@ There is no intuitive way to tell where the visualized sectors are located in th
   \label{fig:visorders}
 \end{figure}
 
-A middle ground between simple sweeping and the Hilbert curve would be block-sweeping.
-Block-sweeping uses the sweeping method to fill up a square NxN pixels in size, then continues to another NxN pixel block and places these pixel blocs in the same way simple sweeping would place individual pixels.
+A middle ground between simple sweeping and the Hilbert curve would be the technique of block-sweeping I came up with.
+Block-sweeping uses the sweeping method to fill up a square NxN pixels in size, then continues to another NxN pixel block and places these pixel blocks in the same way simple sweeping would place individual pixels.
 This means that sweeping is just a version of block-sweeping, with pixel blocks of 1x1 pixels.
 By employing this technique, most shorter sequences are still more pronounced by getting expanded into multiple lines, and the position of pixels in the image more closely resembles the sector position in the source image than in the Hilbert curve.
 However, same as with sweeping, consecutive sectors are not always guaranteed to be right next to each other.
@@ -1022,7 +1024,7 @@ This chapter focuses on the individual parts of the implementation.
 The utility reads the provided disk image in blocks of the provided block size, analyzes the read data, and passes the results alongside information about the position of the read block to the visualization class.
 
 \section{Analysis}
-The utility provides a number of analysis methods.
+The utility provides several analysis methods.
 These methods are each implemented as a class.
 Each analysis class implements a \texttt{calc} method, which analyzes the provided buffer and returns the results.
 The results take the form of a tuple and contain: detected randomness from the range $\langle0,1\rangle$, result flag, and a possible result argument (used to pass the single-byte patterns if found).
@@ -1058,9 +1060,12 @@ Each option, while easily generalizable, is implemented separately due to possib
 (i.e., there is no need for reading a byte bit per bit and then merging the bits into an eight-bit number again; however, for $n = 3$, there is no such easy workaround)
 \texttt{chi2-8} simply counts each byte value, \texttt{chi2-4} separates the byte values into halves using the python bitwise \texttt{\&} and \texttt{>{>}} operators, \texttt{chi2-3} goes through each byte bit-by-bit, and \texttt{chi2-1} uses the \texttt{int.bit\_count method} to get the number of bits set to 1 in the byte value.
 
-Each method first precalculates limits for the chi-square statistic, for which the sector is marked as \emph{suspiciously random}, \emph{random}, or \emph{not random}.
+Each method first calculates the expected count of each value.
+If this value is less than 5, a warning about possible issues with precision\cite{knuth81} is printed.
+This, however, occurs only for the combination of chi2-8 analysis and the sector size of 512 bytes (or lower, but 512 is the smallest commonly used sector size).
+Then the method precalculates limits for the chi-square statistic, for which the sector is marked as \emph{suspiciously random}, \emph{random}, or \emph{not random}.
 Then for each sector, its statistic is compared to these limits, and a matching output flag is selected.
-All methods also check for single-byte patterns. The most common ones (i.e., 0x00 and 0xFF) are always checked.
+All methods also check for single-byte patterns. The most common ones (i.e., \texttt{0x00} and \texttt{0xFF}) are always checked.
 However, all other single-byte patterns are checked only by \texttt{chi2-8} and \texttt{chi2-4}.
 These two implementations were already counting the number of bytes, and this check could be done with a minimal additional performance penalty.
 Finding the other single-byte patterns is not essential as they are not likely to be contained unless they are part of an unencrypted stored file, which will almost always be marked as \emph{not random} by the analysis.
@@ -1090,12 +1095,16 @@ The script \texttt{from\_csv.py} can later use this CSV file to generate a visua
 
 The result of all Image output methods is a bitmap, where each pixel represents the result of an analysis of one sector.
 The image is created using the Pillow library.
-All image output methods also show the legend for colors by default.
 
 Using the command line arguments, the user can change the image's color palette, background color, and legend text color.
 When specifying the background color but not the text color, the text color is determined automatically using the contrast ratio and the relative luminance in accordance with W3 guidelines.\cite{w3guidelines}
 
 Since the image needs to fit all of the sectors and the number of sectors can vary between different disk images, it is essential to have varying proportions of the output images.
+
+The utility also provides means for generating the images using multiple color palettes.
+One of the two implemented is the one used to generate all images in this thesis - the \texttt{sample} palette.
+The other implemented color palette is the one used in Milan Broz's blog\cite{broz11} - the \texttt{asalor} palette.
+By default, the utility also shows the color legend for all image output methods.
 
 \subsection{Sweeping and block sweeping}
 
@@ -1122,6 +1131,124 @@ In order to chain multiple Hilbert curves under each other and still keep the lo
 This can be simply achieved by swapping the x and y coordinates.
 
 \chapter{Results}
+%TODO
+
+\section{Used color palette}
+
+All utility-generated images in this chapter were generated using the \texttt{sample-palette}.
+The \texttt{sample-palette} represents by blue color the sectors that the analysis has marked as containing only zeroes.
+Pixels of green color represent sectors that only contain a single-byte pattern, which is not of byte \texttt{x00}.
+The shade of green represents the repeated byte value (i.e., the brightest green \texttt{xFF} and dimmest green \texttt{x01}).
+Red represents sectors marked as suspiciously random. 
+
+And finally, by magenta are marked all the remaining sectors. The shade of magenta depends on the detected randomness by the analysis. For analysis using Shannon's entropy, the resulting shades of magenta range from black for the lowest but larger than 0 entropy to the brightest magenta (i.e., \texttt{\#FF00FF} in hex color representation) for the highest entropy. 
+
+On the other hand, the chi2 analysis variants only produce two shades of magenta. The lighter shade represents sectors marked as random the darker shade marks all sectors that do not contain a single-byte pattern and are marked as not random. Furthermore, red pixels are only contained in the images analyzed through the chi2 analysis variants as Shannon's entropy analysis cannot mark sectors as suspiciously random.
+
+Legend is not included in every image for space-saving reasons but can be found in the figure \ref{fig:legend}.
+
+\begin{figure}[H]
+  \includegraphics[width=.45\textwidth]{figures/legend.png}
+  \caption{legend for images generated using \texttt{sample-palette}}
+  \label{fig:legend}
+\end{figure}
+
+\section{TRIM}
+
+In order to show how TRIM affects the data stored on the disk and how the utility visualizes it crpytsetup 2.4.3 was used. 
+First, a plain dm-crypt mapping with allowed discards to a 2GiB file was created.
+Then through the mapping, a file system was created into which an unpacked Linux kernel 5.16.9 was copied.
+Then, all the files in the largest directory, \texttt{drivers}, were deleted.
+After deleting the files, a copy of the image was taken.
+Generated images of analyses of these copies can be found in figures \ref{fig:trim-ext4-no-trim} and \ref{fig:trim-xfs-no-trim}.
+These copies were then compared to the resulting image after calling \texttt{fstrim} on the mounted mapper, which discarded all unused sectors.
+Images generated from images with discarded sectors can be found in figures \ref{fig:trim-ext4-trim} and \ref{fig:trim-xfs-trim}.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[t]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/test-ext4-no-trim-chi2-4-sweeping.png}
+    \caption{ext4 without TRIM}
+    \label{fig:trim-ext4-no-trim}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/test-ext4-chi2-4-sweeping.png}
+    \caption{ext4 with TRIM}
+    \label{fig:trim-ext4-trim}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/test-xfs-no-trim-chi2-4-sweeping.png}
+    \caption{xfs without TRIM}
+    \label{fig:trim-xfs-no-trim}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/test-xfs-chi2-4-sweeping.png}
+    \caption{xfs with TRIM}
+    \label{fig:trim-xfs-trim}
+  \end{subfigure}
+  \caption{comparison of encrypted filesystems with and without TRIM generated by \texttt{chi2-4} analysis and sweeping}
+  \label{fig:trim-comparison}
+\end{figure}
+
+At first glance, one can see the difference.
+The sectors marked as blue are the ones that were discarded, and it can be clearly seen how many sectors the data actually takes up and where precisely the encrypted data is stored.
+
+This need not necessarily be a huge security risk; however, in cases when it is vital not to show such information, it is good to be wary of such drawbacks of allowing trim commands.
+
+Note that the light magenta is not solid, and one can, after a closer inspection, occasionally see sectors marked by red or a dark shade of magenta, which are the result of sectors randomly having the p-value of its chi-square statistic smaller than the default significance level of 0.0001.
+The number of these outlier pixels can be decreased by decreasing the significance level with the cost of decreasing the number of truly non-random sectors correctly identified as non-random.
+A closeup of these pixels can be seen in the figure \ref{fig:trim-zoomed}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.5\textwidth]{figures/test-ext4-no-trim-chi2-4-sweeping-zoomed.png}
+    \caption{Zoomed in figure \ref{fig:trim-ext4-no-trim}}
+    \label{fig:trim-zoomed}
+\end{figure}
+
+\section{Bad encryption detection}
+
+For illustration, a fresh Canonical Ubuntu 20.04\cite{ubuntu} installation with the ext4 filesystem was created without encryption.
+Then a file of the size of one gigabyte containing only a repeating word 'test' was written.
+After analyzing the 10 GiB disk image using the analysis method of \texttt{chi2-4} and visualizing it using the Hilbert curve visualization method, the image in the figure \ref{fig:bad-enc-unenc} was produced.
+On the generated image, one can distinctly see many areas of sectors of zeroes and also areas of sectors of unencrypted data.
+
+Then, since disk encryption utilities, for obvious reasons, do not provide flawed encryption methods, OpenSSL 1.1.1n\cite{openssl} was used to encrypt the entire disk image with 128 bit AES in ECB mode.
+Using the same analysis and visualization methods on the encrypted disk image as on the unencrypted variant, the utility generated the image in the figure \ref{fig:bad-enc-enc}.
+On the resulting image are evidently visible areas of detected unencrypted sectors.
+These are mostly the result of encrypting sectors of zeroes.
+However, many areas that previously contained more complex data remained marked as unencrypted.
+Therefore not only would trimmed sectors be affected, but this effect can also occur in sectors storing actual data.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/ubnt-unencrypted-test-chi2-4-hilbert.png}
+        \caption{unencrypted}
+        \label{fig:bad-enc-unenc}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/ubnt-test-aes-128-ecb-chi2-4-hilbert.png}
+        \caption{encrypted with 128 bit AES in ECB mode}
+        \label{fig:bad-enc-enc}
+     \end{subfigure}
+    \caption{10GiB disk images visualized using \texttt{chi2-4} analysis method and hilbert curve}
+    \label{fig:bad-enc-fig}
+\end{figure}
+
+This is caused by the ECB mode's property of encrypting every same block of bytes to the same encrypted block of bytes.
+Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-4} analysis method picks up on it and marks the sector as not random.
+
+
 \chapter{Conclusion}
 
 % \chapter{Using lightweight markup}
