@@ -1139,21 +1139,21 @@ This can be simply achieved by swapping the x and y coordinates.
     \centering
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/pv204_fde-chi2-4-sweeping.png}
+        \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-sweeping.png}
         \caption{Sweeping}
         \label{fig:impl-sweeping}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/pv204_fde-chi2-4-sweeping-blocks.png}
+        \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-sweeping-blocks.png}
         \caption{Sweeping blocks}
         \label{fig:impl-sweeping-blocks}
     \end{subfigure}
     % \hfill
     \begin{subfigure}[t]{.5\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/pv204_fde-chi2-4-hilbert.png}
+        \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-hilbert.png}
         \caption{Hilbert curve with legend}
         \label{fig:impl-hilbert-curve}
     \end{subfigure}
@@ -1179,7 +1179,7 @@ On the other hand, the chi2 analysis variants only produce two shades of magenta
 Legend is not included in every image for space-saving reasons but can be found in the figure \ref{fig:legend}.
 
 \begin{figure}[H]
-  \includegraphics[width=.45\textwidth]{figures/legend.png}
+  \includegraphics[width=.45\textwidth,interpolate=true]{figures/legend.png}
   \caption{Legend for images generated using \texttt{sample-palette}}
   \label{fig:legend}
 \end{figure}
@@ -1199,27 +1199,27 @@ Images generated from images with discarded sectors can be found in figures \ref
   \centering
   \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/test-ext4-no-trim-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{figures/test-ext4-no-trim-chi2-4-sweeping.png}
     \caption{Encrypted ext4 without TRIM}
     \label{fig:trim-ext4-no-trim}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/test-ext4-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{figures/test-ext4-chi2-4-sweeping.png}
     \caption{Encrypted ext4 with TRIM}
     \label{fig:trim-ext4-trim}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/test-xfs-no-trim-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{figures/test-xfs-no-trim-chi2-4-sweeping.png}
     \caption{Encrypted xfs without TRIM}
     \label{fig:trim-xfs-no-trim}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/test-xfs-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{figures/test-xfs-chi2-4-sweeping.png}
     \caption{Encrypted xfs with TRIM}
     \label{fig:trim-xfs-trim}
   \end{subfigure}
@@ -1238,7 +1238,7 @@ A closeup of these pixels can be seen in the figure \ref{fig:trim-zoomed}.
 
 \begin{figure}
     \centering
-    \includegraphics[width=.5\textwidth]{figures/test-ext4-no-trim-chi2-4-sweeping-zoomed.png}
+    \includegraphics[width=.5\textwidth,interpolate=false]{figures/test-ext4-no-trim-chi2-4-sweeping-zoomed.png}
     \caption{Zoomed in figure \ref{fig:trim-ext4-no-trim}}
     \label{fig:trim-zoomed}
 \end{figure}
@@ -1261,14 +1261,14 @@ Therefore not only would trimmed sectors be affected, but this effect can also o
     \centering
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/ubnt-unencrypted-test-chi2-4-hilbert.png}
+        \includegraphics[width=\textwidth,interpolate=false]{figures/ubnt-unencrypted-test-chi2-4-hilbert.png}
         \caption{Unencrypted}
         \label{fig:bad-enc-unenc}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/ubnt-test-aes-128-ecb-chi2-4-hilbert.png}
+        \includegraphics[width=\textwidth,interpolate=false]{figures/ubnt-test-aes-128-ecb-chi2-4-hilbert.png}
         \caption{Encrypted with 128-ubit AES in ECB mode}
         \label{fig:bad-enc-enc}
      \end{subfigure}
@@ -1279,19 +1279,31 @@ Therefore not only would trimmed sectors be affected, but this effect can also o
 This is caused by the ECB mode's property of encrypting every same block of bytes to the same encrypted block of bytes.
 Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-4} analysis method picks up on it and marks the sector as not random.
 
+\section{Visualizing encrypted and unencrypted parts of a disk}
+
+For each of the following examples, a different disk image was used.
+
+\subsection{BitLocker}
+
+BitLocker
+
+For this example, a clean Windows 10 installation was created on a 50GiB virtual drive through Oracle VM VirtualBox.
+First, a raw copy of the disk image was taken using VBoxManage.
+Then, using the BitLocker user interface, full disk encryption was set up, after which another raw copy was taken.
+Then the images in the figure FIGURE were produced using the utility.
 
 \begin{figure}
   \centering
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/idk.png}
+    \includegraphics[width=\textwidth,interpolate=false]{figures/win-unencrypted-chi2-4-photocopy-safe.png}
     \caption{Unencrypted}
     \label{fig:idk-unenc}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[widht=\textwidth]{figures/idk.png}
+    \includegraphics[width=\textwidth,interpolate=false]{figures/win-encrypted-chi2-4.png}
     \caption{Encrypted using BitLocker}
     \label{fig:idk-enc}
   \end{subfigure}
@@ -1299,6 +1311,43 @@ Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-
   \label{fig:idk}
 \end{figure}
 
+In the drive, there are three partitions.
+The first is the system partition containing hardware-specific files needed to load windows \cite{winpart}, the second is the data partition visible from windows under the letter C, and the last is the recovery tools partition \cite{winbiospart}.
+
+In the figure FIGURE, one can see that all sectors seem to be mostly unencrypted and, in the figure FIGURE, only the first and last partitions remain unencrypted.
+After closer inspection, there are also visible chunks of unencrypted sectors in the second partition, and these are sectors containing FVE metadata blocks and their padding \cite{metz22}.
+However, Oracle VM VirtualBox does not allow trim by default. Therefore unused zeroed out sectors are not visible, and it is not easily discernible whether the sector is occupied by a file.
+
+LUKS
+
+For this example, the image from the study materials from the year 2019 of the pv204 course\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}} with whole system encryption with LUKS was used.
+The figure FIGURE resulted from converting the image in \texttt{.vdi} to raw format and using the utility.
+In the figure, one can see that only the first part of the image contains chunks of unencrypted sectors.
+Most of the unencrypted part is the boot partition.
+However, after focusing only on the first two megabytes of the encrypted partition, unencrypted sectors, in the beginning, can still be clearly seen.
+This is the LUKS header, and it contains crucial information on decrypting the rest of the partition \cite{faqcryptsetupluks}.
+
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[t]{.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-hilbert.png}
+    \caption{Generated image from the entire disk}
+    \label{fig:idk2-unenc}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth,interpolate=false]{figures/luks-header.png}
+    \caption{First two megabytes of the encrypted partition}
+    \label{fig:idk2-enc}
+  \end{subfigure}
+  \caption{Whole system encryption with LUKS}
+  \label{fig:idk2}
+\end{figure}
+
+\subsection{Veracrypt}
 
 \chapter{Conclusion}
 
