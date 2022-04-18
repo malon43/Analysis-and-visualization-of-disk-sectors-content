@@ -1280,6 +1280,26 @@ This is caused by the ECB mode's property of encrypting every same block of byte
 Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-4} analysis method picks up on it and marks the sector as not random.
 
 
+\begin{figure}
+  \centering
+  \begin{subfigure}[t]{.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/idk.png}
+    \caption{Unencrypted}
+    \label{fig:idk-unenc}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{.45\textwidth}
+    \centering
+    \includegraphics[widht=\textwidth]{figures/idk.png}
+    \caption{Encrypted using BitLocker}
+    \label{fig:idk-enc}
+  \end{subfigure}
+  \caption{Windows 10 disk image before and after encryption with BitLocker}
+  \label{fig:idk}
+\end{figure}
+
+
 \chapter{Conclusion}
 
 % \chapter{Using lightweight markup}
