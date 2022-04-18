@@ -1318,7 +1318,7 @@ In the figure FIGURE, one can see that all sectors seem to be mostly unencrypted
 After closer inspection, there are also visible chunks of unencrypted sectors in the second partition, and these are sectors containing FVE metadata blocks and their padding \cite{metz22}.
 However, Oracle VM VirtualBox does not allow trim by default. Therefore unused zeroed out sectors are not visible, and it is not easily discernible whether the sector is occupied by a file.
 
-LUKS
+\subsection{LUKS}
 
 For this example, the image from the study materials from the year 2019 of the pv204 course\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}} with whole system encryption with LUKS was used.
 The figure FIGURE resulted from converting the image in \texttt{.vdi} to raw format and using the utility.
