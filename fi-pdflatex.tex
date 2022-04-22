@@ -78,7 +78,7 @@
 \usepackage[acronym]{glossaries}          %% The `glossaries` package
 \renewcommand*\glspostdescription{\hfill} %% contains helper commands
 \loadglsentries{example-terms-abbrs.tex}  %% for typesetting glossaries
-\makenoidxglossaries                      %% and lists of abbreviations.
+%\makenoidxglossaries                      %% and lists of abbreviations.
 %% These additional packages are used within the document:
 \usepackage{paralist} %% Compact list environments
 \usepackage{amsmath}  %% Mathematics
@@ -176,25 +176,27 @@ This review focuses on works on the topics of block pattern and encryption detec
 
 \section{Analysis}
 \label{sec:analysis}
-This section describes parts of analyzing the disk sectors.
 
-\subsection{Block patterns}
-\label{ssec:block-analysis}
 Each disk is divided into tens, even hundreds of millions of sectors.
 Each disk sector stores some data.
 Sectors of empty new drives would be mostly initialized with a pattern of zeroes, except for partitioning tables and file system metadata.
 
-Most recent drives use 4KiB sized sectors, also known as Advanced Format, but still provide backward compatibility with older systems which expect 512B sector size with 512B sector size emulation.\cite{seagate}
+Most recent drives use 4KiB sized sectors, also known as Advanced Format, but still provide backward compatibility with older systems which expect 512B sector size with 512B sector size emulation. \cite{seagate} 
+
+This section describes parts of analyzing the disk sectors.
+
+\subsection{Block patterns}
+\label{ssec:block-analysis}
 
 Sector byte pattern is a specific configuration of bytes, which would indicate what this sector is used for.
-For example, a repeated pattern of byte \texttt{x00} often signalizes that this sector has not been used yet, that the blocks have been freed by the TRIM command.
+For example, a repeated pattern of byte \texttt{x00} often signalizes that this sector has not been used yet, or that the blocks have been freed by the TRIM command.
 The TRIM command is used by the software to inform the drive which sectors no longer contain user data in order to increase performance.\cite{mcmillen21}
 Or, bytes \texttt{x55xAA} at the end of the sector would signalize a block containing master boot record (MBR).
 However, while in many cases, analysis for positions of bytes is not as time-intensive as analysis of randomness or single-byte patterns, multiple problems show up:
 \begin{itemize}
     \item Testing for many positions and byte configuration will add up.
     \item Files with magic bytes may be contained in the first sector where the file is stored, but there is no easy way of telling whether the file simply ends, continues on the next sector, or is placed in a completely different sector.
-    \item If the file is unencrypted, it will mostly get picked up by the randomness analysis.
+    \item As the magic bytes at the beginning of the file are only visible when the file is unencrypted, and correctly encrypted sectors should appear random, the sector containing the magic bytes will mostly get picked up by the randomness analysis and marked as \emph{not random}. 
 \end{itemize}
 
 Most works focusing on detecting patterns of bytes on sectors\cite{foster12, garfmccar15} do it through the lens of forensic analysis and use the filesystem metadata in combination with magic bytes of files to allow the user to find information faster.
@@ -207,6 +209,8 @@ In this case, it is possible to check the predictability of byte values or even 
 
 In order to precisely differentiate random data, the provided samples would need to be in the order of gigabytes, which is far from the provided 512 or 4096 Bytes.
 However, we can at least get an estimate using the techniques described in this subsection.
+
+Based on these estimates and the fact that correctly encrypted data should appear as random, sectors with high randomness can be marked as potentially encrypted.
 
 \subsubsection{Entropy}
 \label{sss:entropy}
@@ -223,16 +227,20 @@ Which can be then used to calculate normalized entropy $\mu(S)$ for the sector:
 
 $$\mu(S) = \frac{H}{H_{max}} = -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
 
-% Where $s$ is equal to the sector size in bytes. % wtf?
 Where $H$ is the entropy of the sector and $H_{max}$ is the maximum possible entropy a sector can achieve, which for sector sizes of non-zero multiples of 256 is always 8.
 Normalized Shannon's entropy ranges from 0, the least random (a single repeated byte value), to 1, the most random (every byte value is contained in the sector an equal amount of times).
-Using this value, one can estimate whether the sector contains encrypted data. 
 
-However,  multiple problems arise when using Shannon's entropy.
-There is no simple line where all sectors with a higher entropy are encrypted, and all with lower entropy are not.
-That means that most sectors containing compressed file formats like videos, jpeg images, or zip files will be almost indistinguishable from encrypted sectors by entropy.
-Another problem is that Shannon's entropy completely disregards the order of values.
-For example, simple counting up (\texttt{x00 x01} ... \texttt{xFE xFF}) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
+Correctly encrypted data should appear as random.
+From the definition of entropy, random data cannot be described easily, and each bit of truly random data should require one bit to be described.
+Based on this, one can estimate whether the sector contains encrypted data from the normalized entropy.
+
+However, the goal of the compression algorithms is to try to encode the provided data into a smaller number of bits.
+This naturally increases the entropy of the data as each bit encodes as much information as the compression algorithm was able to compress into it.
+That means that most sectors containing compressed file formats like videos, jpeg images, or zip files will be almost indistinguishable from encrypted sectors by entropy as there is no simple line where all sectors with a higher entropy are encrypted, and all with lower entropy are not.
+
+After this point, each time entropy is mentioned, it refers to the normalized version.
+
+Another problem that arises when using Shannon's entropy is that the order of the values is completely disregarded. For example, simple counting up (x00 x01 ... xFE xFF) repeatedly, which is often part of files, results in the entropy of 1, despite this clearly not being random. 
 
 Most works I found that attempted to use entropy calculation to classify small data samples used Shannon's entropy despite its drawbacks mentioned above.
 However, each work aimed to use the calculated entropy differently.
@@ -247,10 +255,10 @@ Entropy estimation will be helpful when considering the efficiency and speed of 
 
 \subsubsection{Chi-squared test}
 \label{sss:chi2-test}
+
 The chi-squared test or $\chi^2$ test is used to determine whether or not the data fit our expectations.\cite{pearson00}
 For example, consider flipping five fair coins and counting flipped heads.
 The probability distribution of the results (assuming that the coins cannot land on their side) would look like this:
-
 \begin{center}
     \begin{tabular}{ r | c c c c c c c }
         number of heads & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
@@ -259,9 +267,10 @@ The probability distribution of the results (assuming that the coins cannot land
     \end{tabular}
 \end{center}
 
-First, we select a significance level (e.g. $\alpha = 0.05$).
-Then, after repeating the experiment of flipping five coins 160 times and adding up the results, we get the following table: 
+First, we select a significance level $\alpha$ (e.g. $\alpha = 0.05$).
+Significance level signifies where the cutoff is when our hypothesis is rejected.
 
+Then, after repeating the experiment of flipping five coins 160 times and adding up the results, we get the following table: 
 \begin{center}
     \begin{tabular}{r | c c c c c c}
          number of heads & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
@@ -269,28 +278,31 @@ Then, after repeating the experiment of flipping five coins 160 times and adding
          expected number of flips ($E$) & 5 & 25 & 50 & 50 & 25 & 5
     \end{tabular}
 \end{center}
-Given counts of variables $X_i$, expected counts of variables $E_i = 160 * \text{probability}$, and the number of columns $n$ chi-square test statistic can be calculated using: 
+
+Given counts of variables $X_i$, expected counts of variables $E_i = 160 * \text{probability}$, and the number of columns $n$, chi-square test statistic can be calculated using: 
+
 $$\chi^2 = \sum^{n - 1}_{i = 0}{\left(\frac{(X_i - E_i)^2}{E_i}\right)}$$
-After getting the value approximation, the corresponding value from the cumulative chi-squared distribution for $n - 1$ degrees of freedom represents how likely was the measured data is from the distribution of our null hypothesis.
+
+After getting the value approximation, the corresponding value from the cumulative chi-squared distribution for $n - 1$ degrees of freedom represents how likely the measured data is from the distribution of our null hypothesis.
+We can reject the null hypothesis if the p-value (i.e., likelihood of getting results as extreme as the results obtained) is smaller than half of our chosen $\alpha$ value.
+On the other hand, receiving exact or very close numbers from the distribution with truly random events is equally unlikely.
+Therefore we can also reject the hypothesis when the p-value is larger than $1 - \alpha$. \cite{knuth81}
 
 So, for the coin example, the chi-square statistic is calculated:
+
 $$\chi^2 = \frac{(2 - 5)^2}{5} + \frac{(8 - 25)^2}{25} + \dots + \frac{(8 - 5)^2}{5} = 38.64$$
 
-After calculating the image of 38.64 under the chi-square cumulative distribution function for $5$ degrees of freedom, we can see that $F_5(38.64) = 0.9999997$, which means that the $\text{p-value} = 1 - 0.9999997$ is smaller than our $\alpha$, and we can therefore reject our null hypothesis, meaning that the fact that the in the measured data fair coins were used is less than 5\%.
+After calculating the image of 38.64 under the chi-square cumulative distribution function for $5$ degrees of freedom, we can see that $F_5(38.64) = 0.9999997$, which means that the p-value $1 - 0.9999997$ is smaller than our $\frac{\alpha}{2} = 0.0025$, and we can therefore reject our null hypothesis, meaning that the fact that the measured coined flips were made using fair coins is less than 5\%.
 And indeed, the obtained counts are from tests using two fair and three rigged coins with the probability of getting heads of $\frac{2}{3}$.
-After calculating the chi-square statistic for the hypothesis with rigged coins, we get $\chi^2 = 4.141$ and $F_5(4.141) = 0.4707$ and since $1 - 0.4707 > \alpha$, this hypothesis cannot be rejected.
+After calculating the chi-square statistic for the hypothesis with rigged coins, we get $\chi^2 = 4.141$ and $F_5(4.141) = 0.4707$ and since $1 - 0.4707 > \frac{\alpha}{2}$ and $0.4707 > \frac{alpha}{2}$, this hypothesis cannot be rejected.
 
 As the chi-square test is only an approximation and gets more precise with more data, expected values should be at least 5, and it is preferable that they are much higher. \cite{knuth81}
 
 For detection of random numbers, it is possible, for example, to create a column for each possible number, a column for ranges of numbers, or create a column for each remainder after division by a preselected number.
-Since the distribution of truly random numbers should be uniform, the expected value ($E_i$) should be the same for all columns. 
+Since the distribution of truly random numbers should be uniform, the expected value ($E_i$) should be the same for all columns.
 When the null hypothesis of uniformity of the numbers with sufficiently small $\alpha$ gets rejected, we can assume that the numbers are not random enough.
 
-However, the same counting-up problem as with Shannon's entropy arises.
-When each number is represented the same number of times, the chi-squared statistic for uniform distribution is equal to zero.
-The image of 0 for any number of degrees of freedom is 0, giving the p-value of 1, meaning the hypothesis cannot be rejected.
-As having the random numbers very close to the expected distribution is very unlikely, it is possible to counteract this by also rejecting when the $\text{pvalue} > 1 - \alpha$.\cite{knuth81}
-This way, all number sequences the chi-squared statistics of which would be less likely than $\alpha$ will be rejected.
+With the chi-squared test, the problem of counting up, unlike with Shannon's entropy, does not arise. When each number is represented the same number of times, the chi-squared statistic for uniform distribution is equal to zero. The image of 0 in the $\chi^2$ cumulative distribution for any number of degrees of freedom is 0, giving the p-value of 1, which is then rejected and marked as \emph{perfect random}.
 
 \section{Visualization}
 \label{sec:visualization}
@@ -510,10 +522,12 @@ The Hilbert curve passes through every pixel in a square exactly once in such a 
 Moreover, placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and aggregated into clusters which makes them more easily visible.
 The curve covers a square with the side length of $2^i$ pixels (i.e., a total of $4^i$ pixels) where $i$ is the number of iterations.
 
+The order in which the Hilbert curve goes through pixels in a 2D plane for each of the first three iterations can be seen in the figure \ref{fig:hilbertiters}.
+
 However, when using the Hilbert curve, another problem arises.
 There is no intuitive way to tell where the visualized sectors are located in the source image.
 
-\begin{figure}[H]
+\begin{figure}
   \begin{center}
     \begin{minipage}{.3\textwidth}
     \begin{center}
@@ -933,6 +947,8 @@ This means that sweeping is just a version of block-sweeping, with pixel blocks 
 By employing this technique, most shorter sequences are still more pronounced by getting expanded into multiple lines, and the position of pixels in the image more closely resembles the sector position in the source image than in the Hilbert curve.
 However, same as with sweeping, consecutive sectors are not always guaranteed to be right next to each other.
 
+Figure \ref{fig:visorders} depicts the order in which the sweeping, 2x2 block sweeping, and 4x4 block sweeping methods visit pixels.
+
 \chapter{Used tools}
 \label{chtr:used-tools}
 %\section{Programming language}
@@ -962,6 +978,10 @@ However, same as with sweeping, consecutive sectors are not always guaranteed to
 % The next significant consideration was the availability of other tools and built-in libraries.
 % Python provides a wide range of built-in modules, making programming easier like argparse\cite{argparse} and collections\cite{collections} while also having many other installable libraries, which are mostly platform-independent.
 % C also has many helpful libraries, but many are platform-dependent and might not be available for other distributions.
+
+
+This chapter describes the third-party python libraries the utility uses for both sector classification and visualization.
+
 \section{Pillow}
 \label{sec:pillow}
 
@@ -988,14 +1008,20 @@ The module \texttt{PIL.ImageDraw} is used to modify the \texttt{Image} class fro
 Function \texttt{ImageDraw.Draw} creates a special context object for the given \texttt{Image} object, which can be used for further in-place modifications.
 The class of the context object \texttt{ImageDraw.ImageDraw} provides a wide range of shape drawing methods.
 
-The method \texttt{ImageDraw.rectangle}, allows for drawing rectangle for provided coordinates and colors. It is also possible to specify the width and color of the rectangle outline. The method \texttt{ImageDraw.text} allows for writing a provided string in a font on the image. Both of these methods can be used for drawing the image legend. \cite{pillowimagedraw}
+The method \texttt{ImageDraw.rectangle}, allows for drawing a rectangle for provided coordinates and colors.
+It is also possible to specify the width and color of the rectangle outline.
+The method \texttt{ImageDraw.text} allows for writing a provided string in a font on the image.
+Both of these methods can be used for drawing the image legend. \cite{pillowimagedraw}
 
 \subsection{ImageFont}
 \label{ssec-imagefont}
 
 The module \texttt{ImageFont} is used for working with fonts with the Pillow library.
-It provides the means to load installed fonts by name or from path using the function \texttt{ImageFont.load} or to load a fallback font in case no other font is found with function \texttt{ImageFont.load\_default}.
-Both of these functions return an \texttt{ImageFont.ImageFont} object, which contains a method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
+It provides the means to load installed fonts by name or from path using the function \texttt{ImageFont.truetype} or to load a fallback font in case no other font is found with the function \texttt{ImageFont.load\_default}.
+\texttt{ImageFont.truetype} returns an instance of \texttt{ImageFont.FreeTypeFont} and \texttt{ImageFont.load\_default} returns \texttt{ImageFont.ImageFont}.
+While neither of these classes is a subclass of the other, thanks to Python's duck typing can still be used interchangeably.
+Both of these classes implement the method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
+
 
 % Pillow\cite{pillow} is an image manipulation library for Python, which is a fork of the discontinued library PIL\cite{pil}.
 
@@ -1013,7 +1039,7 @@ SciPy provides a couple of different modules, but only one was used in the imple
 \label{ssec:stats}
 The module \texttt{stats} can be used to calculate values of many discrete\cite{scipydescrete} or continuous\cite{scipycontinuous} statistical distributions, including the chi-squared distribution.
 The module provides callable object \texttt{stats.chi2.ppf}, which calculates the percentile point function (inverse cumulative distribution function) for given probability and degrees of freedom.\cite{scipystatschi2}
-The resulting value is then used as the threshold or limit for when the results of the chi-square statistic are significant and should therefore be marked as \emph{too random} or \emph{not random}.
+The resulting value is then used as the threshold or limit for when the results of the chi-square statistic are significant and should therefore be marked as \emph{perfect random} or \emph{not random}.
 
 
 % \section{Scipy}
@@ -1045,7 +1071,7 @@ This chapter focuses on the individual parts of the implementation.
 The utility reads the provided disk image in blocks of the provided block size, analyzes the read data, and passes the results alongside information about the position of the read block to the visualization class.
 
 \section{Analysis}
-\label{sec:analysis}
+\label{sec:analysis2}
 The utility provides several analysis methods.
 These methods are each implemented as a class.
 Each analysis class implements a \texttt{calc} method, which analyzes the provided buffer and returns the results.
@@ -1093,7 +1119,7 @@ All methods also check for single-byte patterns. The most common ones (i.e., \te
 However, all other single-byte patterns are checked only by \texttt{chi2-8} and \texttt{chi2-4}.
 These two implementations were already counting the number of bytes, and this check could be done with a minimal additional performance penalty.
 Finding the other single-byte patterns is not essential as they are not likely to be contained unless they are part of an unencrypted stored file, which will almost always be marked as \emph{not random} by the analysis.
-The only exception is with \texttt{chi2-1} for the seventy byte patterns, which contain an equal number of zeroes and ones, in which case the sector will be marked as \emph{suspiciously random}.
+The only exception is with \texttt{chi2-1} for the seventy byte patterns, which contain an equal number of zeroes and ones, in which case the sector will be marked as \emph{perfect random}.
 
 \section{Output and visualization}
 \label{sec:output-and-visualization}
@@ -1201,11 +1227,11 @@ All utility-generated images in this chapter were generated using the \texttt{sa
 The \texttt{sample-palette} represents by blue color the sectors that the analysis has marked as containing only zeroes.
 Pixels of green color represent sectors that only contain a single-byte pattern, which is not of byte \texttt{x00}.
 The shade of green represents the repeated byte value (i.e., the brightest green \texttt{xFF} and dimmest green \texttt{x01}).
-Red represents sectors marked as suspiciously random. 
+Red represents sectors marked as \emph{perfect random}. 
 
 And finally, by magenta are marked all the remaining sectors. The shade of magenta depends on the detected randomness by the analysis. For analysis using Shannon's entropy, the resulting shades of magenta range from black for the lowest but larger than 0 entropy to the brightest magenta (i.e., \texttt{\#FF00FF} in hex color representation) for the highest entropy. 
 
-On the other hand, the chi2 analysis variants only produce two shades of magenta. The lighter shade represents sectors marked as random the darker shade marks all sectors that do not contain a single-byte pattern and are marked as not random. Furthermore, red pixels are only contained in the images analyzed through the chi2 analysis variants as Shannon's entropy analysis cannot mark sectors as suspiciously random.
+On the other hand, the chi2 analysis variants only produce two shades of magenta. The lighter shade represents sectors marked as random the darker shade marks all sectors that do not contain a single-byte pattern and are marked as not random. Furthermore, red pixels are only contained in the images analyzed through the chi2 analysis variants as Shannon's entropy analysis cannot mark sectors as \emph{perfect random}.
 
 Legend is not included in every image for space-saving reasons but can be found in the figure \ref{fig:legend}.
 
