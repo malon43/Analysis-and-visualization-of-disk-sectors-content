@@ -11,9 +11,9 @@
            %% digital version of a document. Replace with `printed`
            %% to enable the default options for the printed version
            %% of a document.
-%%  color,   %% Uncomment these lines (by removing the %% at the
-%%           %% beginning) to use color in the printed version of your
-%%           %% document
+  color,   %% Uncomment these lines (by removing the %% at the
+           %% beginning) to use color in the printed version of your
+           %% document
   oneside, %% The `oneside` option enables one-sided typesetting,
            %% which is preferred if you are only going to submit a
            %% digital version of your thesis. Replace with `twoside`
@@ -22,7 +22,7 @@
            %% use at least 120 g/m² paper to prevent show-through.
   lof,     %% The `lof` option prints the List of Figures. Replace
            %% with `nolof` to hide the List of Figures.
-  lot,     %% The `lot` option prints the List of Tables. Replace
+  nolot,     %% The `lot` option prints the List of Tables. Replace
            %% with `nolot` to hide the List of Tables.
 ]{fithesis4}
 %% The following section sets up the locales used in the thesis.
@@ -113,16 +113,17 @@
 
 %% The \chapter* command can be used to produce unnumbered chapters:
 \chapter*{Introduction}
+\label{chtr:introduction}
 %% Unlike \chapter, \chapter* does not update the headings and does not
 %% enter the chapter to the table of contents. I we want correct
 %% headings and a table of contents entry, we must add them manually:
 \markright{\textsc{Introduction}}
 \addcontentsline{toc}{chapter}{Introduction}
-Disks (e.g., hard drives, SSDs, Flash drives)  are usually divided into atomic parts named sectors, which are represented as blocks in the software layer.
-Sectors store a fixed amount of data, usually 512 bytes and 4KiB, but other sector sizes can be used.
+Disks (e.g., hard drives, SSDs, Flash drives) are divided into atomic parts named sectors, which are represented as blocks in the software layer.
+Sectors store a fixed amount of data, usually 512 bytes or 4KiB, but other sector sizes can be used.
 Sectors may contain partition tables, file system information, files or be empty.
 
-Some of the possible contents may contain specific byte patterns which can be analyzed and used to identify the type of content stored in the sector.
+Sectors can contain specific byte patterns which can be analyzed and used to identify the type of content stored in the sector. 
 When a byte pattern is not present, sector content can be analyzed for entropy to estimate whether it is encrypted.
 A good way to get an idea about which parts of the disk are encrypted and where filesystem data is stored is to visualize the data.
 This visualization will allow humans to distinguish between different data encryption methods such as filesystem-level and full-disk encryption and even uncover faulty encryption. % MAYBE
@@ -168,13 +169,17 @@ The resulting utility is available on GitHub\footnote{\url{https://github.com/ma
 % я скоро получу диплом. Желайте мне удачи!
 % }\end{otherlanguage}
 
-\chapter{Prior work} % TODO: Better name
-This review focuses on works on the topics of block detection, entropy calculation, and ways of visualization.
+\chapter{Sector content visualization}
+\label{chtr:sector-content-visualization}
+
+This review focuses on works on the topics of block pattern and encryption detection and ways of visualization
 
 \section{Analysis}
+\label{sec:analysis}
 This section describes parts of analyzing the disk sectors.
 
 \subsection{Block patterns}
+\label{ssec:block-analysis}
 Each disk is divided into tens, even hundreds of millions of sectors.
 Each disk sector stores some data.
 Sectors of empty new drives would be mostly initialized with a pattern of zeroes, except for partitioning tables and file system metadata.
@@ -193,9 +198,10 @@ However, while in many cases, analysis for positions of bytes is not as time-int
 \end{itemize}
 
 Most works focusing on detecting patterns of bytes on sectors\cite{foster12, garfmccar15} do it through the lens of forensic analysis and use the filesystem metadata in combination with magic bytes of files to allow the user to find information faster.
-These, while up an abstraction layer from what this thesis focuses on, can provide beneficial information when identifying common patterns of entire sectors or repeating portions of bytes in a single sector.\cite{foster12}
+These can provide beneficial information when identifying common patterns of entire sectors or repeating portions of bytes in a single sector.\cite{foster12}
 
 \subsection{Randomness}
+\label{ssec:randomness}
 In order to properly classify all disk sectors, one cannot rely exclusively on byte patterns since files can span multiple sectors and can even be encrypted.
 In this case, it is possible to check the predictability of byte values or even of single bits.
 
@@ -206,13 +212,19 @@ However, we can at least get an estimate using the techniques described in this 
 \label{sss:entropy}
 Shannon's entropy calculates the amount of information in bits provided by each byte value in the sector.\cite{shannon48}
 For example, the entropy of 8 bits means that every byte value is contained the same number of times (i.e., exactly $\frac{s}{256}$ times).
-Whereas the entropy value of 0 means that only a single byte value is contained and is repeated through the whole sector. Shannon's entropy can be calculated using:
+Whereas the entropy value of 0 means that only a single byte value is contained and is repeated through the whole sector. 
+
+Shannon's entropy of a sector $H(S)$ can be calculated using:
+
 $$H(S) = -\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
-Where $P(x_i)$ represents the probability of byte value $i$ (i.e., the number of times value $i$ appears in the sector divided by the number of all bytes in the sector). Which can be then normalized:
 
-$$\mu (S) = \frac{H}{H_{max}} = -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
+Where $P(x_i)$ represents the probability of byte value from the sector being $i$ (i.e., the number of times value $i$ appears in the sector divided by the number of all bytes in the sector). 
+Which can be then used to calculate normalized entropy $\mu(S)$ for the sector:
 
-Where $s$ is equal to the sector size in bytes.
+$$\mu(S) = \frac{H}{H_{max}} = -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
+
+% Where $s$ is equal to the sector size in bytes. % wtf?
+Where $H$ is the entropy of the sector and $H_{max}$ is the maximum possible entropy a sector can achieve, which for sector sizes of non-zero multiples of 256 is always 8.
 Normalized Shannon's entropy ranges from 0, the least random (a single repeated byte value), to 1, the most random (every byte value is contained in the sector an equal amount of times).
 Using this value, one can estimate whether the sector contains encrypted data. 
 
@@ -234,7 +246,7 @@ The work concluded by recommending the Miller-Madow method for uniform byte valu
 Entropy estimation will be helpful when considering the efficiency and speed of the entropy calculation.
 
 \subsubsection{Chi-squared test}
-\label{sss:chi2test}
+\label{sss:chi2-test}
 The chi-squared test or $\chi^2$ test is used to determine whether or not the data fit our expectations.\cite{pearson00}
 For example, consider flipping five fair coins and counting flipped heads.
 The probability distribution of the results (assuming that the coins cannot land on their side) would look like this:
@@ -264,7 +276,7 @@ After getting the value approximation, the corresponding value from the cumulati
 So, for the coin example, the chi-square statistic is calculated:
 $$\chi^2 = \frac{(2 - 5)^2}{5} + \frac{(8 - 25)^2}{25} + \dots + \frac{(8 - 5)^2}{5} = 38.64$$
 
-After calculating the image of 38.64 under the chi-square cumulative distribution function for $n - 1$ degrees of freedom, we can see that $F_5(38.64) = 0.9999997$, which means that the $\text{p-value} = 1 - 0.9999997$ is smaller than our $\alpha$, and we can therefore reject our null hypothesis, meaning that the fact that the in the measured data fair coins were used is less than 5\%.
+After calculating the image of 38.64 under the chi-square cumulative distribution function for $5$ degrees of freedom, we can see that $F_5(38.64) = 0.9999997$, which means that the $\text{p-value} = 1 - 0.9999997$ is smaller than our $\alpha$, and we can therefore reject our null hypothesis, meaning that the fact that the in the measured data fair coins were used is less than 5\%.
 And indeed, the obtained counts are from tests using two fair and three rigged coins with the probability of getting heads of $\frac{2}{3}$.
 After calculating the chi-square statistic for the hypothesis with rigged coins, we get $\chi^2 = 4.141$ and $F_5(4.141) = 0.4707$ and since $1 - 0.4707 > \alpha$, this hypothesis cannot be rejected.
 
@@ -281,6 +293,7 @@ As having the random numbers very close to the expected distribution is very unl
 This way, all number sequences the chi-squared statistics of which would be less likely than $\alpha$ will be rejected.
 
 \section{Visualization}
+\label{sec:visualization}
 After classifying all disk sectors based on byte patterns and entropy, it all comes down to visualizing the gathered data.
 While it would be certainly possible to draw a histogram of all sectors' entropy values or a pie graph based on detected patterns, this would not be as illustrative as the chosen approach, and much of the information about sector position in the disk would be lost.
 That is why the resulting utility visualizes the data using a bitmap, where each pixel represents a single sector on a disk.
@@ -921,6 +934,7 @@ By employing this technique, most shorter sequences are still more pronounced by
 However, same as with sweeping, consecutive sectors are not always guaranteed to be right next to each other.
 
 \chapter{Used tools}
+\label{chtr:used-tools}
 %\section{Programming language}
 %When choosing the programming language, I was deciding mainly between the languages C and Python.
 
@@ -949,6 +963,7 @@ However, same as with sweeping, consecutive sectors are not always guaranteed to
 % Python provides a wide range of built-in modules, making programming easier like argparse\cite{argparse} and collections\cite{collections} while also having many other installable libraries, which are mostly platform-independent.
 % C also has many helpful libraries, but many are platform-dependent and might not be available for other distributions.
 \section{Pillow}
+\label{sec:pillow}
 
 Pillow\cite{pillow} is an image manipulation library for Python, which is a fork of the discontinued library PIL\cite{pil}.
 This library is used to visualize the analysis results.
@@ -957,6 +972,7 @@ While they provide the means to create such visualizations, they are not as stra
 While Pillow offers many more features beyond the very basics needed, it still keeps the interface for drawing one pixel at a time very simple. 
 
 \subsection{Image}
+\label{ssec:image}
 
 The module \texttt{PIL.Image} provides an essential toolkit for manipulating images.
 Given the image mode (e.g., RGB or RGBA) and image size, function \texttt{Image.new} creates an instance of the \texttt{PIL.Image.Image} class.
@@ -966,6 +982,7 @@ The method \texttt{Image.putpixel} modifies the state of the Image object and ch
 \texttt{Image.save} tries to store the image on the provided path, and the method \texttt{Image.close} releases allocated memory. \cite{pillowimage}
 
 \subsection{ImageDraw}
+\label{ssec:imagedraw}
 
 The module \texttt{PIL.ImageDraw} is used to modify the \texttt{Image} class from \texttt{PIL.Image} in more powerful ways than just changing single pixels.
 Function \texttt{ImageDraw.Draw} creates a special context object for the given \texttt{Image} object, which can be used for further in-place modifications.
@@ -974,6 +991,7 @@ The class of the context object \texttt{ImageDraw.ImageDraw} provides a wide ran
 The method \texttt{ImageDraw.rectangle}, allows for drawing rectangle for provided coordinates and colors. It is also possible to specify the width and color of the rectangle outline. The method \texttt{ImageDraw.text} allows for writing a provided string in a font on the image. Both of these methods can be used for drawing the image legend. \cite{pillowimagedraw}
 
 \subsection{ImageFont}
+\label{ssec-imagefont}
 
 The module \texttt{ImageFont} is used for working with fonts with the Pillow library.
 It provides the means to load installed fonts by name or from path using the function \texttt{ImageFont.load} or to load a fallback font in case no other font is found with function \texttt{ImageFont.load\_default}.
@@ -986,11 +1004,13 @@ Both of these functions return an \texttt{ImageFont.ImageFont} object, which con
 % While Pillow offers many more features beyond the very basics needed, it still keeps the interface for drawing one pixel at a time very simple.
 
 \section{Scipy}
+\label{sec:scipy}
 SciPy\cite{scipy20} is a Python library for scientific computing.
 This library is used to calculate the inverse cumulative distribution function for the chi-squared distribution.
 SciPy provides a couple of different modules, but only one was used in the implementation.
 
 \subsection{stats}
+\label{ssec:stats}
 The module \texttt{stats} can be used to calculate values of many discrete\cite{scipydescrete} or continuous\cite{scipycontinuous} statistical distributions, including the chi-squared distribution.
 The module provides callable object \texttt{stats.chi2.ppf}, which calculates the percentile point function (inverse cumulative distribution function) for given probability and degrees of freedom.\cite{scipystatschi2}
 The resulting value is then used as the threshold or limit for when the results of the chi-square statistic are significant and should therefore be marked as \emph{too random} or \emph{not random}.
@@ -1018,20 +1038,23 @@ The resulting value is then used as the threshold or limit for when the results 
 % \chapter{Entropy calculation}
 % \chapter{Ways of visualization}.
 \chapter{Implementation}
+\label{chtr:implementation}
 This chapter focuses on the individual parts of the implementation.
 %...rest of the description of the chapter... % TODO
 
 The utility reads the provided disk image in blocks of the provided block size, analyzes the read data, and passes the results alongside information about the position of the read block to the visualization class.
 
 \section{Analysis}
+\label{sec:analysis}
 The utility provides several analysis methods.
 These methods are each implemented as a class.
 Each analysis class implements a \texttt{calc} method, which analyzes the provided buffer and returns the results.
 The results take the form of a tuple and contain: detected randomness from the range $\langle0,1\rangle$, result flag, and a possible result argument (used to pass the single-byte patterns if found).
 
 \subsection{Entropy}
+\label{ssec:entropy}
 
-The provided buffer's Shannon entropy can be calculated using the formula mentioned in \textbf{\nameref{sss:entropy}}.
+The provided buffer's Shannon entropy can be calculated using the formula mentioned in the subsubsection \ref{sss:entropy}.
 However, since $P(x_i) = \frac{c_i}{s}$ where $c_i$ is the number of times the value $i$ was in the buffer and $s$ is the unchanging sector size, the formula for normalized entropy can be simplified to
 $$-\frac{1}{8s}\sum_{i=0}^{255}(c_i * \log_2(c_i)) + \log_2(s)$$
 The counts $c_i$ are calculated using \texttt{Counter} from the \texttt{collections} module\cite{collections}.
@@ -1044,12 +1067,13 @@ While this analysis is not helpful to recognize random from non-random data at a
 Image generated with Shannon's entropy can be found in the figure FIGURE.   % TODO
 
 \subsection{Chi-square}
+\label{ssec:chi2}
 
 The implementation includes multiple options for analysis by chi-square test.
 Each option takes $n$ consecutive bits and treats them as a separate number.
 If the sector size is not a multiple of $n$, the remaining bits are ignored.
 
-The chi-square statistic can be calculated using the formula mentioned in \textbf{\nameref{sss:chi2test}}.
+The chi-square statistic can be calculated using the formula mentioned in the subsubsection \ref{sss:chi2-test}.
 As the numbers should be from the uniform distribution and the expected count for each value should be the same, the formula can be modified to
 $$\frac{1}{E}\sum_{i = 0}^{2^n - 1}((X_i - E)^2)$$
 where $E$ is the expected count of each number and can be calculated using 
@@ -1072,6 +1096,7 @@ Finding the other single-byte patterns is not essential as they are not likely t
 The only exception is with \texttt{chi2-1} for the seventy byte patterns, which contain an equal number of zeroes and ones, in which case the sector will be marked as \emph{suspiciously random}.
 
 \section{Output and visualization}
+\label{sec:output-and-visualization}
 
 Each output method is implemented in the form of a class.
 Each output class should implement the following three methods.
@@ -1083,6 +1108,7 @@ Each output class should implement the following three methods.
 Each output class can have an attribute \texttt{default\_parameters}, which is a mapping of a parameter name to \texttt{Parameter} dataclass, which stores the type of the parameter, default value, help string, and can also store string description of the default value and list of available options.
 
 \subsection{Text output}
+\label{ssec:text-output}
 
 The utility, while being primarily intended for visualization, also implements two methods for text output.
 
@@ -1092,6 +1118,7 @@ The second method, \texttt{csv}, outputs the analysis result as a CSV file.
 The script \texttt{from\_csv.py} can later use this CSV file to generate a visualization using the other output methods without analyzing the disk image again.
 
 \subsection{Image output}
+\label{ssec:image-output}
 
 The result of all Image output methods is a bitmap, where each pixel represents the result of an analysis of one sector.
 The image is created using the Pillow library.
@@ -1107,6 +1134,7 @@ The other implemented color palette is the one used in Milan Broz's blog\cite{br
 By default, the utility also shows the color legend for all image output methods.
 
 \subsection{Sweeping and block sweeping}
+\label{ssec:sweeping-and-block-sweeping}
 
 The user can set both the image width and sweeping block size.
 When both are provided, it is only checked that width is a multiple of sweeping block size.
@@ -1118,6 +1146,7 @@ In this case, the sweeping block size is set to 32 if not specified.
 Sweeping is a special case of block sweeping with the sweeping block size set to 1.
 
 \subsection{Hilbert curve}
+\label{ssec:hilbert-curve}
 
 For the Hilbert curve, the image size can only be determined automatically.
 The smallest single curve which would fit all the sectors needs to have precisely $i = \lceil\log_4(\text{number of sectors})\rceil$ iterations.
@@ -1162,9 +1191,11 @@ This can be simply achieved by swapping the x and y coordinates.
 \end{figure}
 
 \chapter{Results}
+\label{chtr:results}
 %TODO
 
 \section{Used color palette}
+\label{sec:used-color-palette}
 
 All utility-generated images in this chapter were generated using the \texttt{sample-palette}.
 The \texttt{sample-palette} represents by blue color the sectors that the analysis has marked as containing only zeroes.
@@ -1185,6 +1216,7 @@ Legend is not included in every image for space-saving reasons but can be found 
 \end{figure}
 
 \section{TRIM}
+\label{sec:trim}
 
 In order to show how TRIM affects the data stored on the disk and how the utility visualizes it crpytsetup 2.4.3 was used. 
 First, a plain dm-crypt mapping with allowed discards to a 2GiB file was created.
@@ -1243,7 +1275,8 @@ A closeup of these pixels can be seen in the figure \ref{fig:trim-zoomed}.
     \label{fig:trim-zoomed}
 \end{figure}
 
-\section{Bad encryption}
+\section{Flawed encryption}
+\label{sec:flawed-encryption}
 
 For illustration, a fresh Canonical Ubuntu 20.04\cite{ubuntu} installation with the ext4 filesystem was created without encryption.
 Then a file of the size of one gigabyte containing only a repeating word 'test' was written.
@@ -1280,12 +1313,12 @@ This is caused by the ECB mode's property of encrypting every same block of byte
 Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-4} analysis method picks up on it and marks the sector as not random.
 
 \section{Visualizing encrypted and unencrypted parts of a disk}
+\label{sec:visualizing-encrypted-and-unencrypted-parts-of-a-disk}
 
 For each of the following examples, a different disk image was used.
 
 \subsection{BitLocker}
-
-BitLocker
+\label{ssec:bitlocker}
 
 For this example, a clean Windows 10 installation was created on a 50GiB virtual drive through Oracle VM VirtualBox.
 First, a raw copy of the disk image was taken using VBoxManage.
@@ -1319,6 +1352,7 @@ After closer inspection, there are also visible chunks of unencrypted sectors in
 However, Oracle VM VirtualBox does not allow trim by default. Therefore unused zeroed out sectors are not visible, and it is not easily discernible whether the sector is occupied by a file.
 
 \subsection{LUKS}
+\label{ssec:luks}
 
 For this example, the image from the study materials from the year 2019 of the pv204 course\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}} with whole system encryption with LUKS was used.
 The figure FIGURE resulted from converting the image in \texttt{.vdi} to raw format and using the utility.
@@ -1348,8 +1382,10 @@ This is the LUKS header, and it contains crucial information on decrypting the r
 \end{figure}
 
 \subsection{Veracrypt}
+\label{ssec:veracrypt}
 
 \chapter{Conclusion}
+\label{chtr:conclusion}
 
 % \chapter{Using lightweight markup}
 % \shorthandoff{-}
@@ -1890,7 +1926,7 @@ This is the LUKS header, and it contains crucial information on decrypting the r
 
 \makeatletter\thesis@blocks@clear\makeatother
 %   \phantomsection %% Print the index and insert it into the
-\addcontentsline{toc}{chapter}{\indexname} %% table of contents.
+%   \addcontentsline{toc}{chapter}{\indexname} %% table of contents.
 %   \printindex
 
 % \appendix %% Start the appendices.
