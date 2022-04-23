@@ -194,7 +194,8 @@ The TRIM command is used by the software to inform the drive which sectors no lo
 Or, bytes \texttt{x55xAA} at the end of the sector would signalize a block containing master boot record (MBR).
 However, while in many cases, analysis for positions of bytes is not as time-intensive as analysis of randomness or single-byte patterns, multiple problems show up:
 \begin{itemize}
-    \item Testing for many positions and byte configuration will add up.
+    \item Time spent testing for many positions, and byte configurations will add up.
+    (The utility blkid \cite{blkid} and its underlying library \cite{libblkid} do check specified offsets to determine the locations of partitions and information about the filesystems stored within them, but the provided information is not viable for the visualizations as it does not provide the location or offset of the detected features.)
     \item Files with magic bytes may be contained in the first sector where the file is stored, but there is no easy way of telling whether the file simply ends, continues on the next sector, or is placed in a completely different sector.
     \item As the magic bytes at the beginning of the file are only visible when the file is unencrypted, and correctly encrypted sectors should appear random, the sector containing the magic bytes will mostly get picked up by the randomness analysis and marked as \emph{not random}. 
 \end{itemize}
@@ -1016,8 +1017,8 @@ Both of these methods can be used for drawing the image legend. \cite{pillowimag
 \subsection{ImageFont}
 \label{ssec-imagefont}
 
-The module \texttt{ImageFont} is used for working with fonts with the Pillow library.
-It provides the means to load installed fonts by name or from path using the function \texttt{ImageFont.truetype} or to load a fallback font in case no other font is found with the function \texttt{ImageFont.load\_default}.
+The \texttt{ImageFont} module is used to work with fonts with the Pillow library.
+It provides the means to load any installed fonts by their name or from path using the function \texttt{ImageFont.truetype} or to load a fallback font in case no other font is found with the function \texttt{ImageFont.load\_default}.
 \texttt{ImageFont.truetype} returns an instance of \texttt{ImageFont.FreeTypeFont} and \texttt{ImageFont.load\_default} returns \texttt{ImageFont.ImageFont}.
 While neither of these classes is a subclass of the other, thanks to Python's duck typing can still be used interchangeably.
 Both of these classes implement the method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
