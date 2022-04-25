@@ -102,6 +102,9 @@
 \usepackage{floatrow} %% Putting captions above tables
 \floatsetup[table]{capposition=top}
 \usepackage[babel]{csquotes} %% Context-sensitive quotation marks
+
+\graphicspath{{figures}} %% change to figures-orig-res for figures that weren't downsized
+
 \begin{document}
 %% Uncomment the following lines (by removing the %% at the beginning)
 %% and to print out List of Abbreviations and/or Glossary in your
@@ -1114,7 +1117,7 @@ Each option, while easily generalizable, is implemented separately due to possib
 Each method first calculates the expected count of each value.
 If this value is less than 5, a warning about possible issues with precision\cite{knuth81} is printed.
 This, however, occurs only for the combination of chi2-8 analysis and the sector size of 512 bytes (or lower, but 512 is the smallest commonly used sector size).
-Then the method precalculates limits for the chi-square statistic, for which the sector is marked as \emph{suspiciously random}, \emph{random}, or \emph{not random}.
+Then the method precalculates limits for the chi-square statistic, for which the sector is marked as \emph{perfect random}, \emph{random}, or \emph{not random}.
 Then for each sector, its statistic is compared to these limits, and a matching output flag is selected.
 All methods also check for single-byte patterns. The most common ones (i.e., \texttt{0x00} and \texttt{0xFF}) are always checked.
 However, all other single-byte patterns are checked only by \texttt{chi2-8} and \texttt{chi2-4}.
@@ -1195,21 +1198,21 @@ This can be simply achieved by swapping the x and y coordinates.
     \centering
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-sweeping.png}
+        \includegraphics[width=\textwidth,interpolate=false]{pv204_fde-chi2-4-sweeping.png}
         \caption{Sweeping}
         \label{fig:impl-sweeping}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-sweeping-blocks.png}
+        \includegraphics[width=\textwidth,interpolate=false]{pv204_fde-chi2-4-sweeping-blocks.png}
         \caption{Sweeping blocks}
         \label{fig:impl-sweeping-blocks}
     \end{subfigure}
     % \hfill
     \begin{subfigure}[t]{.6\textwidth}
         \centering
-        \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-hilbert.png}
+        \includegraphics[width=\textwidth,interpolate=false]{pv204_fde-chi2-4-hilbert.png}
         \caption{Hilbert curve with legend}
         \label{fig:impl-hilbert-curve}
     \end{subfigure}
@@ -1219,25 +1222,55 @@ This can be simply achieved by swapping the x and y coordinates.
 
 \chapter{Results}
 \label{chtr:results}
-%TODO
+This chapter showcases examples of what the utility could be used for.
+
+All images were generated with the utility with its parameters set as follows:
+\begin{itemize}
+  \item sector size of 512B
+  \item chi2-4 analysis method
+  \item the significance level of 0.0002
+  \item photocopy-safe palette
+\end{itemize}
+
+The output method changes from figure to figure and is always mentioned in the figure caption.
 
 \section{Used color palette}
 \label{sec:used-color-palette}
 
-All utility-generated images in this chapter were generated using the \texttt{sample-palette}.
-The \texttt{sample-palette} represents by blue color the sectors that the analysis has marked as containing only zeroes.
-Pixels of green color represent sectors that only contain a single-byte pattern, which is not of byte \texttt{x00}.
-The shade of green represents the repeated byte value (i.e., the brightest green \texttt{xFF} and dimmest green \texttt{x01}).
-Red represents sectors marked as \emph{perfect random}. 
+All utility-generated images in this chapter were generated using the \texttt{photocopy-safe} palette.
+This palette is specifically designed to be still readable after conversion to grayscale.
+The \texttt{photocopy-safe} palette represents by light-green color the sectors that the analysis has marked as containing only zeroes.
+Pixels of yellow color represent sectors that only contain a single-byte pattern, which is not of byte 0.
+Unlike other implemented palettes, its shade does not represent the repeated byte value and is constant for each non-zero repeated byte value.
+Orange represents sectors marked as \emph{perfect random}.
 
-And finally, by magenta are marked all the remaining sectors. The shade of magenta depends on the detected randomness by the analysis. For analysis using Shannon's entropy, the resulting shades of magenta range from black for the lowest but larger than 0 entropy to the brightest magenta (i.e., \texttt{\#FF00FF} in hex color representation) for the highest entropy. 
+And finally, all other sectors are marked by shades between blue and red.
+This shade depends on the detected randomness by the analysis.
+For statistic-test-based analysis, the results are purely binary.
+By blue are represented sectors marked as \emph{random}, and red represents sectors marked as \emph{not random}.
 
-On the other hand, the chi2 analysis variants only produce two shades of magenta. The lighter shade represents sectors marked as random the darker shade marks all sectors that do not contain a single-byte pattern and are marked as not random. Furthermore, red pixels are only contained in the images analyzed through the chi2 analysis variants as Shannon's entropy analysis cannot mark sectors as \emph{perfect random}.
+For the analysis using Shannon's entropy, the shade of purple represents the entropy detected.
+The bluer the sector is, the higher its entropy, and the redder sector is, the lower its entropy.
+Pictures generated using Shannon's entropy analysis cannot contain orange as it cannot mark sectors as \emph{perfect random}.
+
+As all images in this chapter were analyzed using the \texttt{chi2-4} analysis method, the colors marking the randomness are only blue or red.
+
+The legend of the used palette can be found in the figure \ref{fig:legend}.
+
+% All utility-generated images in this chapter were generated using the \texttt{sample-palette}.
+% The \texttt{sample-palette} represents by blue color the sectors that the analysis has marked as containing only zeroes.
+% Pixels of green color represent sectors that only contain a single-byte pattern, which is not of byte \texttt{x00}.
+% The shade of green represents the repeated byte value (i.e., the brightest green \texttt{xFF} and dimmest green \texttt{x01}).
+% Red represents sectors marked as \emph{perfect random}. 
+
+% And finally, by magenta are marked all the remaining sectors. The shade of magenta depends on the detected randomness by the analysis. For analysis using Shannon's entropy, the resulting shades of magenta range from black for the lowest but larger than 0 entropy to the brightest magenta (i.e., \texttt{\#FF00FF} in hex color representation) for the highest entropy. 
+
+% On the other hand, the chi2 analysis variants only produce two shades of magenta. The lighter shade represents sectors marked as random the darker shade marks all sectors that do not contain a single-byte pattern and are marked as not random. Furthermore, red pixels are only contained in the images analyzed through the chi2 analysis variants as Shannon's entropy analysis cannot mark sectors as \emph{perfect random}.
 
 Legend is not included in every image for space-saving reasons but can be found in the figure \ref{fig:legend}.
 
 \begin{figure}[H]
-  \includegraphics[width=.45\textwidth,interpolate=true]{figures/legend.png}
+  \includegraphics[width=.45\textwidth,interpolate=true]{legend.png}
   \caption{Legend for images generated using \texttt{sample-palette}}
   \label{fig:legend}
 \end{figure}
@@ -1258,33 +1291,33 @@ Images generated from images with discarded sectors can be found in figures \ref
   \centering
   \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/test-ext4-no-trim-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{test-ext4-no-trim-chi2-4-sweeping.png}
     \caption{Encrypted ext4 without TRIM}
     \label{fig:trim-ext4-no-trim}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/test-ext4-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{test-ext4-chi2-4-sweeping.png}
     \caption{Encrypted ext4 with TRIM}
     \label{fig:trim-ext4-trim}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/test-xfs-no-trim-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{test-xfs-no-trim-chi2-4-sweeping.png}
     \caption{Encrypted xfs without TRIM}
     \label{fig:trim-xfs-no-trim}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/test-xfs-chi2-4-sweeping.png}
+    \includegraphics[width=\textwidth,interpolate=false]{test-xfs-chi2-4-sweeping.png}
     \caption{Encrypted xfs with TRIM}
     \label{fig:trim-xfs-trim}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/legend.png}
+    \includegraphics[width=\textwidth]{legend.png}
     \caption{Legend}
     \label{fig:trim-legend1}
   \end{subfigure}
@@ -1293,22 +1326,22 @@ Images generated from images with discarded sectors can be found in figures \ref
 \end{figure}
 
 At first glance, one can see the difference.
-The sectors marked as blue are the ones that were discarded, and it can be clearly seen how many sectors the data actually takes up and where precisely the encrypted data is stored.
+The sectors marked by green are the ones that were discarded, and it can be clearly seen how many sectors the data actually takes up and where precisely the encrypted data is stored.
 
 This need not necessarily be a huge security risk; however, in cases when it is vital not to show such information, it is good to be wary of such drawbacks of allowing trim commands.
 
-Note that the light magenta is not solid, and one can, after a closer inspection, occasionally see sectors marked by red or a dark shade of magenta, which are the result of sectors randomly having the p-value of its chi-square statistic smaller than the default significance level of 0.0001.
+Note that the blue is not solid, and one can, after a closer inspection, occasionally see sectors marked by orange or red, which are the result of sectors randomly having the p-value of its chi-square statistic outside of the bounds defined by the default significance value of 0.0002.
 The number of these outlier pixels can be decreased by decreasing the significance level with the cost of decreasing the number of truly non-random sectors correctly identified as non-random.
 A closeup of these pixels can be seen in the figure \ref{fig:trim-zoomed}.
 
 \begin{figure}
     \centering
-    \includegraphics[width=.95\textwidth,interpolate=false]{figures/test-ext4-no-trim-chi2-4-sweeping-zoomed.png}
+    \includegraphics[width=.95\textwidth,interpolate=false]{test-ext4-no-trim-chi2-4-sweeping-zoomed.png}
     \caption{Zoomed in figure \ref{fig:trim-ext4-no-trim} with sectors marked as \emph{not random} or \emph{perfect random} highlighted with red circles}
     \label{fig:trim-zoomed}
 \end{figure}
 
-\section{Flawed encryption}
+\section{Flawed encryption detection}
 \label{sec:flawed-encryption}
 
 For illustration, a fresh Canonical Ubuntu 20.04\cite{ubuntu} installation with the ext4 filesystem was created without encryption.
@@ -1319,22 +1352,22 @@ On the generated image, one can distinctly see many areas of sectors of zeroes a
 Then, since disk encryption utilities, for obvious reasons, do not provide flawed encryption methods, OpenSSL 1.1.1n\cite{openssl} was used to encrypt the entire disk image with 128-bit AES in ECB mode.
 Using the same analysis and visualization methods on the encrypted disk image as on the unencrypted variant, the utility generated the image in the figure \ref{fig:bad-enc-enc}.
 On the resulting image are evidently visible areas of detected unencrypted sectors.
-These are mostly the result of encrypting sectors of zeroes.
-However, many areas that previously contained more complex data remained marked as unencrypted.
+These are mostly the result of encrypting sectors of zeroes and, if the flawed encryption method were to be used and sector discarding was to be enabled, would most likely be trimmed and visible as zeroed regardless.
+However, many areas that previously contained more complex data also remained marked as \emph{not random}.
 Therefore not only would trimmed sectors be affected, but this effect can also occur in sectors storing actual data.
 
 \begin{figure}
     \centering
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth,interpolate=false]{figures/ubnt-unencrypted-test-chi2-4-hilbert.png}
+        \includegraphics[width=\textwidth,interpolate=false]{ubnt-unencrypted-test-chi2-4-hilbert.png}
         \caption{Unencrypted}
         \label{fig:bad-enc-unenc}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth,interpolate=false]{figures/ubnt-test-aes-128-ecb-chi2-4-hilbert-legend.png}
+        \includegraphics[width=\textwidth,interpolate=false]{ubnt-test-aes-128-ecb-chi2-4-hilbert-legend.png}
         \caption{Encrypted with 128-bit AES in ECB mode}
         \label{fig:bad-enc-enc}
      \end{subfigure}
@@ -1343,7 +1376,7 @@ Therefore not only would trimmed sectors be affected, but this effect can also o
 \end{figure}
 
 This is caused by the ECB mode's property of encrypting every same block of bytes to the same encrypted block of bytes.
-Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-4} analysis method picks up on it and marks the sector as not random.
+Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-4} analysis method picks up on it and marks the sector as \emph{not random}.
 
 \section{Visualizing encrypted and unencrypted parts of a disk}
 \label{sec:visualizing-encrypted-and-unencrypted-parts-of-a-disk}
@@ -1362,31 +1395,31 @@ Then the images in the figure \ref{fig:bitlocker} were produced using the utilit
   \centering
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/win-unencrypted-chi2-4-hilbert.png}
+    \includegraphics[width=\textwidth,interpolate=false]{win-unencrypted-chi2-4-hilbert.png}
     \caption{Unencrypted}
     \label{fig:bitlocker-unenc}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/win-encrypted-chi2-42.png}
+    \includegraphics[width=\textwidth,interpolate=false]{win-encrypted-chi2-4.png}
     \caption{Encrypted using BitLocker}
     \label{fig:bitlocker-enc}
   \end{subfigure}
   \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/fve4.png}
-    \caption{Visualization of FVE metadata at the offset of 0xc9c93800 bytes}
+    \includegraphics[width=\textwidth,interpolate=false]{fve4.png}
+    \caption{Visualization of FVE metadata at the offset of 0xc9c93800 bytes using the \texttt{sweeping} method}
     \label{fig:bitlocker-metadata}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/legend.png}
+    \includegraphics[width=\textwidth]{legend.png}
     \caption{Legend}
     \label{fig:bitlocker-legend}
   \end{subfigure}
-  \caption{Windows 10 disk image before and after encryption with BitLocker and FVE metadata}
+  \caption{Windows 10 disk image before and after encryption with BitLocker generated with the \texttt{hilbert-curve} output method and FVE metadata}
   \label{fig:bitlocker}
 \end{figure}
 
@@ -1420,14 +1453,14 @@ After the second JSON area padding, in accordance with the LUKS2 specification, 
 %   \centering
 %   \begin{subfigure}[t]{.45\textwidth}
 %     \centering
-%     \includegraphics[width=\textwidth,interpolate=false]{figures/pv204_fde-chi2-4-hilbert.png}
+%     \includegraphics[width=\textwidth,interpolate=false]{pv204_fde-chi2-4-hilbert.png}
 %     \caption{Generated image from the entire disk}
 %     \label{fig:idk2-unenc}
 %   \end{subfigure}
 %   \hfill
 %   \begin{subfigure}[t]{.45\textwidth}
 %     \centering
-%     \includegraphics[width=\textwidth,interpolate=false]{figures/luks-header.png}
+%     \includegraphics[width=\textwidth,interpolate=false]{luks-header.png}
 %     \caption{First two megabytes of the encrypted partition}
 %     \label{fig:idk2-enc}
 %   \end{subfigure}
@@ -1438,20 +1471,20 @@ After the second JSON area padding, in accordance with the LUKS2 specification, 
   \centering
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/ext4-luks2-sweeping.png}
-    \caption{Generated image from the entire 2GiB image}
+    \includegraphics[width=\textwidth,interpolate=false]{ext4-luks2-sweeping.png}
+    \caption{Generated image from the entire 2GiB image using \texttt{sweeping}}
     \label{fig:luks-unenc}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/ext4-luks2-head.png}
+    \includegraphics[width=\textwidth,interpolate=false]{ext4-luks2-head.png}
     \caption{LUKS2 header generated with 8x8 sweeping blocks method}
     \label{fig:luks-full}
   \end{subfigure}
   \begin{subfigure}[b]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/legend.png}
+    \includegraphics[width=\textwidth]{legend.png}
     \caption{Legend}
     \label{fig:luks-legend} 
   \end{subfigure}
@@ -1461,37 +1494,37 @@ After the second JSON area padding, in accordance with the LUKS2 specification, 
 
 \subsection{VeraCrypt file-hosted volume}
 \label{ssec:veracrypt-file-hosted-volume}
-A VeraCrypt file-hosted volume of size 1GiB was created in a Ubuntu installation in Oracle VM VirtualBox with ext4 filesystem and without TRIM.
-The images in figure \ref{fig:veracrypt} were generated from the converted raw images before and after the VeraCrypt file-hosted volume creation.
+A VeraCrypt file-hosted volume of size 1GiB was created in a Ubuntu installation in Oracle VM VirtualBox on a 10GiB virtual drive with ext4 filesystem and without TRIM.
+The images in figure \ref{fig:veracrypt} were generated from the converted raw images before and after the VeraCrypt file-hosted volume\cite{veracryptvol} creation.
 
-In the figure \ref{fig:veracrypt-with} is noticeably more sectors marked as random than in the figure \ref{fig:veracrypt-without}.
+In the figure \ref{fig:veracrypt-with} is noticeably more sectors marked as \emph{random} than in the figure \ref{fig:veracrypt-without}.
 These are the sectors containing the encrypted file. 
 
 However, after a closer inspection, it is clear that the VeraCrypt volume also displaced non-zero byte-pattern sectors.
-This could be explained by the fact that some of the displaced sectors classified as not random could be remnants of previously deleted data, which has not been trimmed because of the disabled discard and were therefore not zeroed.
+This could be explained by the fact that some of the displaced sectors classified as not random could be remnants of previously deleted data, which has not been trimmed because of the disabled discard and therefore did not appear as zeroed.
 
 \begin{figure}
   \centering
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/ubnt-unencrypted-chi2-4-sweeping-blocks.png}
+    \includegraphics[width=\textwidth,interpolate=false]{ubnt-unencrypted-chi2-4-sweeping-blocks.png}
     \caption{Without VeraCrypt volume}
     \label{fig:veracrypt-without}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth,interpolate=false]{figures/ubnt-veracrypt-chi2-4-sweeping-blocks.png}
-    \caption{LUKS2 header generated with 8x8 sweeping blocks method}
+    \includegraphics[width=\textwidth,interpolate=false]{ubnt-veracrypt-chi2-4-sweeping-blocks.png}
+    \caption{After creating 1GiB VeraCrypt volume}
     \label{fig:veracrypt-with}
   \end{subfigure}
   \begin{subfigure}[b]{.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/legend.png}
+    \includegraphics[width=\textwidth]{legend.png}
     \caption{Legend}
     \label{fig:veracrypt-legend} 
   \end{subfigure}
-  \caption{LUKS2 full drive encryption}
+  \caption{Difference before and after creating VeraCrypt file-hosted volume generated by the  \texttt{sweeping-blocks} method}
   \label{fig:veracrypt}
 \end{figure}
 
