@@ -1094,12 +1094,15 @@ By the entropy definition, the impossible results should not affect it.
 
 However, Shannon's entropy is not a statistical test, and its results are not used to distinguish between random and not random.
 Therefore there are no levels of significance, and the analysis result is just a number from the range 0-1.
-While this analysis is not helpful to recognize random from non-random data at a glance, it can illustrate whether sectors with similar entropy (and therefore with similar file contents) are stored next to each other.
-Image generated with Shannon's entropy can be found in the figure FIGURE.
+While this analysis does not help recognize random from non-random data at a glance, it can illustrate whether sectors with similar entropy (and therefore with similar file contents) are stored next to each other. 
+
+Image generated with Shannon's entropy can be found in the figure \ref{fig:impl-shannon}.
+The darker the shadow of red, the higher the detected entropy of the sector represented by the pixel.
+
 \begin{figure}
     \centering
-    \includegraphics[width=.6\textwidth]{ubnt-unencrypted-shannon-hilbert-asalor.png}
-    \caption{Image from figure \ref{fig:veracrypt-without} generated with Shannon's entropy analysis}
+    \includegraphics[width=\textwidth,interpolate=false]{ubnt-unencrypted-shannon-hilbert-asalor.png}
+    \caption{Image generated with Shannon's entropy analysis and \texttt{asalor} palette from the same disk image as figure \ref{fig:veracrypt-without}}
     \label{fig:impl-shannon}
 \end{figure}
 
@@ -1210,7 +1213,7 @@ This can be simply achieved by swapping the x and y coordinates.
         \centering
         \includegraphics[width=\textwidth,interpolate=false]{pv204_fde-chi2-4-sweeping.png}
         \caption{Sweeping}
-        \labeli{fig:impl-sweeping}
+        \label{fig:impl-sweeping}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{.45\textwidth}
