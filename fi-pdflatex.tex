@@ -57,8 +57,8 @@
     advisor     = {Ing. Milan Brož, Ph.D.},
     title       = {Disk sector content analysis and visualization},
     TeXtitle    = {Disk sector content analysis and visualization},
-    keywords    = {keyword1, keyword2, ...},
-    TeXkeywords = {keyword1, keyword2, \ldots},
+    keywords    = {visualization, disk encryption, disk sector, randomness detection},
+    TeXkeywords = {visualization, disk encryption, disk sector, randomness detection},
     abstract    = {%
       This is the abstract of my thesis, which can
 
@@ -129,7 +129,7 @@ Sectors may contain partition tables, file system information, files or be empty
 Sectors can contain specific byte patterns which can be analyzed and used to identify the type of content stored in the sector. 
 When a byte pattern is not present, sector content can be analyzed for entropy to estimate whether it is encrypted.
 A good way to get an idea about which parts of the disk are encrypted and where filesystem data is stored is to visualize the data.
-This visualization will allow humans to distinguish between different data encryption methods such as filesystem-level and full-disk encryption and even uncover faulty encryption. % MAYBE
+This visualization will allow humans to distinguish between different data encryption methods such as filesystem-level and full-disk encryption and even uncover faulty encryption.
 Visualizing can also be very useful as an illustration while teaching.
 
 The utility introduced in this bachelor's thesis analyzes the sectors of a user-specified size of a provided disk image and visualizes the result using the Pillow Python library.
@@ -224,12 +224,19 @@ Whereas the entropy value of 0 means that only a single byte value is contained 
 
 Shannon's entropy of a sector $H(S)$ can be calculated using:
 
-$$H(S) = -\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
+\begin{equation}
+  H(S) = -\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))
+  \label{eq:entropy}
+\end{equation}
 
 Where $P(x_i)$ represents the probability of byte value from the sector being $i$ (i.e., the number of times value $i$ appears in the sector divided by the number of all bytes in the sector). 
 Which can be then used to calculate normalized entropy $\mu(S)$ for the sector:
 
-$$\mu(S) = \frac{H}{H_{max}} = -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))$$
+\begin{equation}
+  \mu(S) = \frac{H}{H_{max}} = -\frac{1}{8}\sum_{i=0}^{255}(P(x_i)\log_2(P(x_i)))
+  \label{eq:norm-entropy}
+\end{equation}
+
 
 Where $H$ is the entropy of the sector and $H_{max}$ is the maximum possible entropy a sector can achieve, which for sector sizes of non-zero multiples of 256 is always 8.
 Normalized Shannon's entropy ranges from 0, the least random (a single repeated byte value), to 1, the most random (every byte value is contained in the sector an equal amount of times).
@@ -286,7 +293,10 @@ Then, after repeating the experiment of flipping five coins 160 times and adding
 
 Given counts of variables $X_i$, expected counts of variables $E_i = 160 * \text{probability}$, and the number of columns $n$, chi-square test statistic can be calculated using: 
 
-$$\chi^2 = \sum^{n - 1}_{i = 0}{\left(\frac{(X_i - E_i)^2}{E_i}\right)}$$
+\begin{equation}
+  \chi^2 = \sum^{n - 1}_{i = 0}{\left(\frac{(X_i - E_i)^2}{E_i}\right)}
+  \label{eq:chi2-statistic}
+\end{equation}
 
 After getting the value approximation, the corresponding value from the cumulative chi-squared distribution for $n - 1$ degrees of freedom represents how likely the measured data is from the distribution of our null hypothesis.
 We can reject the null hypothesis if the p-value (i.e., likelihood of getting results as extreme as the results obtained) is smaller than half of our chosen $\alpha$ value.
@@ -295,7 +305,10 @@ Therefore we can also reject the hypothesis when the p-value is larger than $1 -
 
 So, for the coin example, the chi-square statistic is calculated:
 
-$$\chi^2 = \frac{(2 - 5)^2}{5} + \frac{(8 - 25)^2}{25} + \dots + \frac{(8 - 5)^2}{5} = 38.64$$
+\begin{equation}
+  \chi^2 = \frac{(2 - 5)^2}{5} + \frac{(8 - 25)^2}{25} + \dots + \frac{(8 - 5)^2}{5} = 38.64
+  \label{eq:chi2-statistic-example}
+\end{equation}
 
 After calculating the image of 38.64 under the chi-square cumulative distribution function for $5$ degrees of freedom, we can see that $F_5(38.64) = 0.9999997$, which means that the p-value $1 - 0.9999997$ is smaller than our $\frac{\alpha}{2} = 0.0025$, and we can therefore reject our null hypothesis, meaning that the fact that the measured coined flips were made using fair coins is less than 5\%.
 And indeed, the obtained counts are from tests using two fair and three rigged coins with the probability of getting heads of $\frac{2}{3}$.
@@ -1085,9 +1098,14 @@ The results take the form of a tuple and contain: detected randomness from the r
 \subsection{Entropy}
 \label{ssec:entropy}
 
-The provided buffer's Shannon entropy can be calculated using the formula mentioned in the subsubsection \ref{sss:entropy}.
-However, since $P(x_i) = \frac{c_i}{s}$ where $c_i$ is the number of times the value $i$ was in the buffer and $s$ is the unchanging sector size, the formula for normalized entropy can be simplified to
-$$-\frac{1}{8s}\sum_{i=0}^{255}(c_i * \log_2(c_i)) + \log_2(s)$$
+The provided buffer's normalized Shannon's entropy can be calculated using the formula \eqref{eq:norm-entropy}.
+However, since $P(x_i) = \frac{c_i}{s}$ where $c_i$ is the number of times the value $i$ was in the buffer and $s$ is the unchanging sector size, the formula can be simplified to
+
+\begin{equation}
+ -\frac{1}{8s}\sum_{i=0}^{255}(c_i * \log_2(c_i)) + \log_2(s)
+ \label{eq:impl-entropy}
+\end{equation}
+
 The counts $c_i$ are calculated using \texttt{Counter} from the \texttt{collections} module\cite{collections}.
 The fact that the \texttt{Counter} object only iterates over nonzero counts does not matter.
 By the entropy definition, the impossible results should not affect it.
@@ -1176,6 +1194,8 @@ The \texttt{photocopy-safe} palette can be seen in the figure \ref{fig:impl-visu
 
 The utility draws the color legend for all image output methods by default.
 
+The images in figure \ref{fig:impl-visualizations} were generated from 16GiB disk image of modified Debian system with whole system encryption taken from the study materials of the course FI:PV204\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}}.
+
 \subsection{Sweeping and block sweeping}
 \label{ssec:sweeping-and-block-sweeping}
 
@@ -1187,6 +1207,8 @@ The utility tries to form a rectangle closest to a square if the width is not de
 In this case, the sweeping block size is set to 32 if not specified.
 
 Sweeping is a special case of block sweeping with the sweeping block size set to 1.
+
+Images generated using the sweeping and sweeping blocks method can be found in the figures \ref{fig:impl-sweeping} and \ref{fig:impl-sweeping-blocks}.
 
 \subsection{Hilbert curve}
 \label{ssec:hilbert-curve}
@@ -1362,7 +1384,7 @@ Then a file of the size of one gigabyte containing only a repeating word 'test' 
 After analyzing the 10 GiB disk image using the analysis method of \texttt{chi2-4} and visualizing it using the Hilbert curve visualization method, the image in the figure \ref{fig:bad-enc-unenc} was produced.
 On the generated image, one can distinctly see many areas of sectors of zeroes and also areas of sectors of unencrypted data.
 
-Then, since disk encryption utilities, for obvious reasons, do not provide flawed encryption methods, OpenSSL 1.1.1n\cite{openssl} was used to encrypt the entire disk image with 128-bit AES in ECB mode.
+Then OpenSSL 1.1.1n\cite{openssl} was used to encrypt the entire disk image with 128-bit AES in ECB mode.
 Using the same analysis and visualization methods on the encrypted disk image as on the unencrypted variant, the utility generated the image in the figure \ref{fig:bad-enc-enc}.
 On the resulting image are evidently visible areas of detected unencrypted sectors.
 These are mostly the result of encrypting sectors of zeroes and, if the flawed encryption method were to be used and sector discarding was to be enabled, would most likely be trimmed and visible as zeroed regardless.
@@ -2097,7 +2119,7 @@ usage: script.py [-h] [-s SIZE] [-m OUTPUT_METHOD]
                  [-l SIG_LEVEL | 
                  [--rand-lim RAND_LIM 
                   --sus-rand-lim SUS_RAND_LIM]]
-                 [output method arguments] disk_image
+                 [output method arguments] DISK_IMAGE
 
 options:
   -h, --help            show this help message and exit
@@ -2125,6 +2147,7 @@ options:
                         randomness suspiciously high
                         significance limit (default:
                         0.0001)
+
 
   sample-output:
     --output-file OUTPUT_FILE
@@ -2162,6 +2185,8 @@ options:
     --background BACKGROUND
                           hex code of background color
                           (default: white)
+  
+
     --palette PALETTE     color palette to use
                           (available: asalor, sample, rg,
                           photocopy-safe) (default:
@@ -2193,6 +2218,7 @@ options:
                           (available: asalor, sample, rg,
                           photocopy-safe) (default:
                           photocopy-safe)
+
     --font FONT           font to use for legend
                           (default: LiberationMono-
                           Regular)
