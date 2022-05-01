@@ -42,8 +42,8 @@
 %%
 %% For non-Latin scripts, it may be necessary to load additional
 %% fonts:
-\usepackage{paratype}
-\def\textrussian#1{{\usefont{T2A}{PTSerif-TLF}{m}{rm}#1}}
+% \usepackage{paratype}
+% \def\textrussian#1{{\usefont{T2A}{PTSerif-TLF}{m}{rm}#1}}
 %%
 %% The following section sets up the metadata of the thesis.
 \thesissetup{
@@ -60,9 +60,9 @@
     keywords    = {visualization, disk encryption, disk sector, randomness detection},
     TeXkeywords = {visualization, disk encryption, disk sector, randomness detection},
     abstract    = {%
-      This is the abstract of my thesis, which can
-
-      span multiple paragraphs.
+      Data visualization is often vital for people's understanding of the data.
+      This thesis discusses methods of classifying the sectors based on their randomness using statistical tests or Shannon's entropy calculation and methods for visualization and introduces a utility that analyzes sectors of a provided disk image and visualizes them to provide a visual representation of which sectors are encrypted, discarded, or may contain readable data.
+      Then, several examples of disk images visualized using the introduced utility are showcased and discussed.
     },
     thanks      = {%
       These are the acknowledgements for my thesis, which can
