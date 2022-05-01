@@ -201,7 +201,7 @@ Or, bytes \texttt{x55xAA} at the end of the sector would signalize a block conta
 However, while in many cases, analysis for positions of bytes is not as time-intensive as analysis of randomness or single-byte patterns, multiple problems show up:
 \begin{itemize}
     \item Time spent testing for many positions, and byte configurations will add up.
-    (The utility blkid \cite{blkid} and its underlying library \cite{libblkid} do check specified offsets to determine the locations of partitions and information about the filesystems stored within them, but the provided information is not viable for the visualizations as it does not provide the location or offset of the detected features.)
+    (The utility blkid\cite{blkid} and its underlying library\cite{libblkid} do check specified offsets to determine the locations of partitions and information about the filesystems stored within them, but the provided information is not viable for the visualizations as it does not provide the location or offset of the detected features.)
     \item Files with magic bytes may be contained in the first sector where the file is stored, but there is no easy way of telling whether the file simply ends, continues on the next sector, or is placed in a completely different sector.
     \item As the magic bytes at the beginning of the file are only visible when the file is unencrypted, and correctly encrypted sectors should appear random, the sector containing the magic bytes will mostly get picked up by the randomness analysis and marked as \emph{not random}. 
 \end{itemize}
@@ -304,7 +304,7 @@ Given counts of variables $X_i$, expected counts of variables $E_i = 160 * \text
 After getting the value approximation, the corresponding value from the cumulative chi-squared distribution for $n - 1$ degrees of freedom represents how likely the measured data is from the distribution of our null hypothesis.
 We can reject the null hypothesis if the p-value (i.e., likelihood of getting results as extreme as the results obtained) is smaller than half of our chosen $\alpha$ value.
 On the other hand, receiving exact or very close numbers from the distribution with truly random events is equally unlikely.
-Therefore we can also reject the hypothesis when the p-value is larger than $1 - \alpha$. \cite{knuth81}
+Therefore we can also reject the hypothesis when the p-value is larger than $1 - \alpha$.\cite{knuth81}
 
 So, for the coin example, the chi-square statistic is calculated:
 
@@ -317,7 +317,7 @@ After calculating the image of 38.64 under the chi-square cumulative distributio
 And indeed, the obtained counts are from tests using two fair and three rigged coins with the probability of getting heads of $\frac{2}{3}$.
 After calculating the chi-square statistic for the hypothesis with rigged coins, we get $\chi^2 = 4.141$ and $F_5(4.141) = 0.4707$ and since $1 - 0.4707 > \frac{\alpha}{2}$ and $0.4707 > \frac{\alpha}{2}$, this hypothesis cannot be rejected.
 
-As the chi-square test is only an approximation and gets more precise with more data, expected values should be at least 5, and it is preferable that they are much higher. \cite{knuth81}
+As the chi-square test is only an approximation and gets more precise with more data, expected values should be at least 5, and it is preferable that they are much higher.\cite{knuth81}
 
 For detection of random numbers, it is possible, for example, to create a column for each possible number, a column for ranges of numbers, or create a column for each remainder after division by a preselected number.
 Since the distribution of truly random numbers should be uniform, the expected value ($E_i$) should be the same for all columns.
@@ -331,7 +331,7 @@ After classifying all disk sectors based on byte patterns and entropy, it all co
 While it would be certainly possible to draw a histogram of all sectors' entropy values or a pie graph based on detected patterns, this would not be as illustrative as the chosen approach, and much of the information about sector position in the disk would be lost.
 That is why the resulting utility visualizes the data using a bitmap, where each pixel represents a single sector on a disk.
 
-Many works which were visualizing data used the most straightforward technique of \emph{sweeping}. \cite{hargreaves13, charalampidis18, broz11}
+Many works which were visualizing data used the most straightforward technique of \emph{sweeping}.\cite{hargreaves13, charalampidis18, broz11}
 This means that the first pixel is placed in the top-left corner, and each following pixel is placed to the right of the previous one except for when the position exceeds the fixed width of the image.
 In that case, the pixel is placed on the left-most position on the following line.
 This technique can be very illustrative in cases when the disk contains long sequences of equally classified sectors.
@@ -538,7 +538,7 @@ However, when the disk would contain a shorter sequence, this would produce only
   \label{fig:hilbertiters}
 \end{figure}
 
-That is why the work \cite{cortesi11} used the more complex Hilbert space-filling curve.
+That is why Cortesi\cite{cortesi11} used the more complex Hilbert space-filling curve.
 The Hilbert curve passes through every pixel in a square exactly once in such a recursive pattern for which consecutive pixels always share one side.\cite{hilbert91}
 Moreover, placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and aggregated into clusters which makes them more easily visible.
 The curve covers a square with the side length of $2^i$ pixels (i.e., a total of $4^i$ pixels) where $i$ is the number of iterations.
@@ -1020,7 +1020,7 @@ Given the image mode (e.g., RGB or RGBA) and image size, function \texttt{Image.
 The \texttt{Image} class stores the state of the resulting image and can be modified using its methods. 
 
 The method \texttt{Image.putpixel} modifies the state of the Image object and changes the color of the pixel on the given coordinates to the given color.
-\texttt{Image.save} tries to store the image on the provided path, and the method \texttt{Image.close} releases allocated memory. \cite{pillowimage}
+\texttt{Image.save} tries to store the image on the provided path, and the method \texttt{Image.close} releases allocated memory.\cite{pillowimage}
 
 \subsection{ImageDraw}
 \label{ssec:imagedraw}
@@ -1032,7 +1032,7 @@ The class of the context object \texttt{ImageDraw.ImageDraw} provides a wide ran
 The method \texttt{ImageDraw.rectangle}, allows for drawing a rectangle for provided coordinates and colors.
 It is also possible to specify the width and color of the rectangle outline.
 The method \texttt{ImageDraw.text} allows for writing a provided string in a font on the image.
-Both of these methods can be used for drawing the image legend. \cite{pillowimagedraw}
+Both of these methods can be used for drawing the image legend.\cite{pillowimagedraw}
 
 \subsection{ImageFont}
 \label{ssec-imagefont}
@@ -1041,7 +1041,7 @@ The \texttt{ImageFont} module is used to work with fonts with the Pillow library
 It provides the means to load any installed fonts by their name or from path using the function \texttt{ImageFont.truetype} or to load a fallback font in case no other font is found with the function \texttt{ImageFont.load\_default}.
 \texttt{ImageFont.truetype} returns an instance of \texttt{ImageFont.FreeTypeFont} and \texttt{ImageFont.load\_default} returns \texttt{ImageFont.ImageFont}.
 While neither of these classes is a subclass of the other, thanks to Python's duck typing can still be used interchangeably.
-Both of these classes implement the method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font. \cite{pillowimagefont}
+Both of these classes implement the method \texttt{ImageFont.getsize} for calculating the dimensions in pixels of the box occupied by provided text written in this font.\cite{pillowimagefont}
 
 
 % Pillow\cite{pillow} is an image manipulation library for Python, which is a fork of the discontinued library PIL\cite{pil}.
@@ -1192,12 +1192,12 @@ Since the image needs to fit all of the sectors and the number of sectors can va
 The utility also provides means for generating the images using multiple color palettes.
 The four implemented are \texttt{sample}, \texttt{asalor}, \texttt{rg}, and \texttt{photocopy-safe} palettes.
 The \texttt{asalor} color palette is the one used in Milan Broz's blog\cite{broz11}.
-The colors for palettes rg and photocopy-safe were taken from colorbrewer2.org \cite{brewer02}.
+The colors for palettes rg and photocopy-safe were taken from colorbrewer2.org\cite{brewer02}.
 The \texttt{photocopy-safe} palette can be seen in the figure \ref{fig:impl-visualizations}.
 
 The utility draws the color legend for all image output methods by default.
 
-The images in figure \ref{fig:impl-visualizations} were generated from 16GiB disk image of modified Debian system with whole system encryption taken from the study materials of the course FI:PV204\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}}.
+The images in figure \ref{fig:impl-visualizations} were generated from a 16GiB disk image of a modified Debian system with whole system encryption taken from the study materials of the course FI:PV204\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}}.
 
 \subsection{Sweeping and block sweeping}
 \label{ssec:sweeping-and-block-sweeping}
@@ -1224,9 +1224,8 @@ If that is the case, width is set to $2^{i - 1}$ and height to the needed number
 Otherwise, the calculated number of iterations is used.
 And therefore, the height and width are the same and equal to $2^i$.
 
-The algorithm used for transforming sector sequence numbers into x and y coordinates from the Hilbert curve has been adapted from the C implementation in \cite{wikihilbert}.
-The C implementation from \cite{wikihilbert} is a special case of the algorithm from \cite{skilling04} adapted to use two dimensions and distance from the start rather than a transposed array of bits of the distance.
 
+The algorithm used for transforming sector sequence numbers into x and y coordinates from the Hilbert curve has been adapted from a C implementation,\cite{wikihilbert} which is a special case of the algorithm from Skilling's work\cite{skilling04} adapted to use two dimensions and distance from the start rather than a transposed array of bits of the distance.
 
 In order to chain multiple Hilbert curves under each other and still keep the locality-preserving properties, the curves portrayed in the figure \ref{fig:hilbertiters} need to be mirrored along their top-left to bottom-right diagonals.
 This can be simply achieved by swapping the x and y coordinates.
@@ -1462,10 +1461,10 @@ Then the images in the figure \ref{fig:bitlocker} were produced using the utilit
 \end{figure}
 
 In the drive, there are three partitions.
-The first is the system partition containing hardware-specific files needed to load windows \cite{winpart}, the second is the data partition visible from windows under the letter C, and the last is the recovery tools partition \cite{winbiospart}.
+The first is the system partition containing hardware-specific files needed to load windows,\cite{winpart} the second is the data partition visible from windows under the letter C, and the last is the recovery tools partition.\cite{winbiospart}
 
 In the figure \ref{fig:bitlocker-unenc}, one can see that most sectors seem to be unencrypted and, in the figure \ref{fig:bitlocker-enc}, only the first and last partitions remain unencrypted.
-After closer inspection, there are also visible chunks of unencrypted sectors in the second partition, and these are sectors containing FVE metadata blocks and their padding \cite{metz22}.
+After closer inspection, there are also visible chunks of unencrypted sectors in the second partition, and these are sectors containing FVE metadata blocks and their padding.\cite{metz22}
 An example of an unencrypted chunk containing FVE metadata can be found in the figure \ref{fig:bitlocker-metadata}. 
 For this example, discarding sectors on the drive was not enabled. 
 Therefore unused zeroed out sectors are not visible, and it is not easily discernible whether the sector is occupied by a file.
@@ -1485,7 +1484,7 @@ After formatting and creating an ext4 filesystem, a Linux kernel was copied into
 The figure \ref{fig:luks-full} was generated by the utility from the entirety of the 2GiB file.
 The figure \ref{fig:luks-header} is generated using the sweeping-blocks method and depicts only the first sixteen megabytes, which is the data from sectors containing the LUKS header.
 In the top-left corner, the primary binary header, first JSON area, their padding, and their copy can be seen.
-After the second JSON area padding, in accordance with the LUKS2 specification, the cryptographically generated keyslots area follows \cite{broz22}.
+After the second JSON area padding, in accordance with the LUKS2 specification, the cryptographically generated keyslots area follows.\cite{broz22}
 
 % \begin{figure}
 %   \centering
