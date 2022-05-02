@@ -1394,19 +1394,26 @@ Therefore not only would discarded sectors be affected, but this effect can also
 
 \begin{figure}
     \centering
-    \begin{subfigure}[t]{.45\textwidth}
+    \begin{subfigure}[t]{.3\textwidth}
         \centering
         \includegraphics[width=\textwidth,interpolate=false]{ubnt-unencrypted-test-chi2-4-hilbert.png}
         \caption{Unencrypted}
         \label{fig:bad-enc-unenc}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[t]{.45\textwidth}
+    \begin{subfigure}[t]{.3\textwidth}
         \centering
         \includegraphics[width=\textwidth,interpolate=false]{ubnt-test-aes-128-ecb-chi2-4-hilbert-legend.png}
         \caption{Encrypted with 128-bit AES in ECB mode}
         \label{fig:bad-enc-enc}
-     \end{subfigure}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,interpolate=false]{figures/ubnt-test-aes-128-cbc-chi2-4-hilbert.png}
+        \caption{Encrypted with 128-bit AES in CBC mode}
+        \label{fig:bad-enc-good-enc}
+    \end{subfigure}
     \caption{10GiB disk images visualized using \texttt{chi2-4} analysis method and hilbert curve}
     \label{fig:bad-enc-fig}
 \end{figure}
