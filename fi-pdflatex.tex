@@ -126,7 +126,7 @@
 \addcontentsline{toc}{chapter}{Introduction}
 
 Disks (e.g., hard drives, SSDs, Flash drives) are divided into atomic parts named sectors, which are represented as blocks in the software layer.
-Sectors store a fixed amount of data, usually 512 bytes or 4KiB, but other sector sizes can be used.
+Sectors store a fixed amount of data, usually 512 or 4096 bytes, but other sector sizes can be used.
 Sectors may contain partition tables, file system information, files or be empty.
 
 Sectors can contain specific byte patterns (e.g., be full of zeroes), which can be analyzed and used to identify the nature of the stored content.
@@ -187,7 +187,7 @@ Each disk is divided into tens, even hundreds of millions of sectors.
 Each disk sector stores some data.
 Sectors of empty new drives would be mostly initialized with a pattern of zeroes, except for partitioning tables and file system metadata.
 
-Most recent drives use 4KiB sized sectors, also known as Advanced Format, but still provide backward compatibility with older systems which expect 512B sector size with 512B sector size emulation.\cite{seagate} 
+Most recent drives use 4096-byte sized sectors, also known as Advanced Format, but still provide backward compatibility with older systems which expect 512-byte sector size with 512-byte sector size emulation.\cite{seagate} 
 
 This section describes parts of analyzing the disk sectors.
 
@@ -200,10 +200,10 @@ The TRIM command is used by the software to inform the drive which sectors no lo
 Or, bytes \texttt{x55xAA} at the end of the sector would signalize a block containing master boot record (MBR).
 However, while in many cases, analysis for positions of bytes is not as time-intensive as analysis of randomness or single-byte patterns, multiple problems show up:
 \begin{itemize}
-    \item Time spent testing for many positions, and byte configurations will add up.
-    (The utility blkid\cite{blkid} and its underlying library\cite{libblkid} do check specified offsets to determine the locations of partitions and information about the filesystems stored within them, but the provided information is not viable for the visualizations as it does not provide the location or offset of the detected features.)
-    \item Files with magic bytes may be contained in the first sector where the file is stored, but there is no easy way of telling whether the file simply ends, continues on the next sector, or is placed in a completely different sector.
-    \item As the magic bytes at the beginning of the file are only visible when the file is unencrypted, and correctly encrypted sectors should appear random, the sector containing the magic bytes will mostly get picked up by the randomness analysis and marked as \emph{not random}. 
+    \item time spent testing for many positions, and byte configurations will add up,
+    (The utility blkid\cite{blkid} and its underlying library\cite{libblkid} do check specified offsets to determine the locations of partitions and information about the filesystems stored within them, and could be used by the utility in the future.)
+    \item files with magic bytes may be contained in the first sector where the file is stored, but there is no easy way of telling whether the file simply ends, continues on the next sector, or is placed in a completely different sector.
+    \item as the magic bytes at the beginning of the file are only visible when the file is unencrypted, and correctly encrypted sectors should appear random, the sector containing the magic bytes will mostly get picked up by the randomness analysis and marked as \emph{not random}. 
 \end{itemize}
 
 Most works focusing on detecting patterns of bytes on sectors\cite{foster12, garfmccar15} do it through the lens of forensic analysis and use the filesystem metadata in combination with magic bytes of files to allow the user to find information faster.
@@ -214,7 +214,7 @@ These can provide beneficial information when identifying common patterns of ent
 In order to properly classify all disk sectors, one cannot rely exclusively on byte patterns since files can span multiple sectors and can even be encrypted.
 In this case, it is possible to check the predictability of byte values or even of single bits.
 
-In order to precisely differentiate random data, the provided samples would need to be in the order of gigabytes, which is far from the provided 512 or 4096 Bytes.
+In order to precisely differentiate random data, the provided samples would need to be in the order of gigabytes, which is far from the provided 512 or 4096 bytes.
 However, we can at least get an estimate using the techniques described in this subsection.
 
 Based on these estimates and the fact that correctly encrypted data should appear as random, sectors with high randomness can be marked as potentially encrypted.
@@ -543,7 +543,7 @@ The Hilbert curve passes through every pixel in a square exactly once in such a 
 Moreover, placing pixels in these specific ways ensures that the shorter sequences are expanded into multiple lines and aggregated into clusters which makes them more easily visible.
 The curve covers a square with the side length of $2^i$ pixels (i.e., a total of $4^i$ pixels) where $i$ is the number of iterations.
 
-The order in which the Hilbert curve goes through pixels in a 2D plane for each of the first three iterations can be seen in the figure \ref{fig:hilbertiters}.
+The order in which the Hilbert curve goes through pixels in a 2D plane for each of the first three iterations can be seen in the Figure \ref{fig:hilbertiters}.
 
 However, when using the Hilbert curve, another problem arises.
 There is no intuitive way to tell where the visualized sectors are located in the source image.
@@ -1117,13 +1117,13 @@ However, Shannon's entropy is not a statistical test, and its results are not us
 Therefore there are no levels of significance, and the analysis result is just a number from the range 0-1.
 While this analysis does not help recognize random from non-random data at a glance, it can illustrate whether sectors with similar entropy (and therefore with similar file contents) are stored next to each other. 
 
-Image generated with Shannon's entropy can be found in the figure \ref{fig:impl-shannon}.
+Image generated with Shannon's entropy can be found in the Figure \ref{fig:impl-shannon}.
 The darker the shadow of red, the higher the detected entropy of the sector represented by the pixel.
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth,interpolate=false]{ubnt-unencrypted-shannon-hilbert-asalor.png}
-    \caption{Image generated with Shannon's entropy analysis and \texttt{asalor} palette from the same disk image as figure \ref{fig:veracrypt-without}}
+    \caption{Image generated with Shannon's entropy analysis and \texttt{asalor} palette from the same disk image as Figure \ref{fig:veracrypt-without}}
     \label{fig:impl-shannon}
 \end{figure}
 
@@ -1162,9 +1162,9 @@ The only exception is with \texttt{chi2-1} for the seventy byte patterns, which 
 Each output method is implemented in the form of a class.
 Each output class should implement the following three methods.
 \begin{itemize}
-    \item Method \texttt{output} for taking the analysis output and storing it.
-    \item Method \texttt{error} to be run in case of an error to display it.
-    \item Method \texttt{exit}, which is run before the program terminates to close any open data streams and save stored data into files.
+    \item Method \texttt{output} for taking the analysis output and storing it,
+    \item method \texttt{error} to be run in case of an error to display it,
+    \item method \texttt{exit}, which is run before the program terminates to close any open data streams and save stored data into files.
 \end{itemize}
 Each output class can have an attribute \texttt{default\_parameters}, which is a mapping of a parameter name to \texttt{Parameter} dataclass, which stores the type of the parameter, default value, help string, and can also store string description of the default value and list of available options.
 
@@ -1175,14 +1175,14 @@ The utility, while being primarily intended for visualization, also implements t
 
 The first one is \texttt{sample-output}, which just formats the analysis output of each sector on a seperate line as follows: <sector number> (<sector offset>) - <randomness>, <result flag> (pattern of: <single-byte pattern if present>)
 
-The second method, \texttt{csv}, outputs the analysis result as a CSV file.
+The second method, \texttt{csv}, outputs the analysis result as a CSV (comma-separated values) file.
 The script \texttt{from\_csv.py} can later use this CSV file to generate a visualization using the other output methods without analyzing the disk image again.
 
 \subsection{Image output}
 \label{ssec:image-output}
 
 The result of all Image output methods is a bitmap, where each pixel represents the result of an analysis of one sector.
-The image is created using the Pillow library.
+The image is created using the Pillow library.\cite{pillow}
 
 Using the command line arguments, the user can change the image's color palette, background color, and legend text color.
 When specifying the background color but not the text color, the text color is determined automatically using the contrast ratio and the relative luminance in accordance with W3 guidelines.\cite{w3guidelines}
@@ -1193,11 +1193,11 @@ The utility also provides means for generating the images using multiple color p
 The four implemented are \texttt{sample}, \texttt{asalor}, \texttt{rg}, and \texttt{photocopy-safe} palettes.
 The \texttt{asalor} color palette is the one used in Milan Broz's blog\cite{broz11}.
 The colors for palettes rg and photocopy-safe were taken from colorbrewer2.org\cite{brewer02}.
-The \texttt{photocopy-safe} palette can be seen in the figure \ref{fig:impl-visualizations}.
+The \texttt{photocopy-safe} palette can be seen in the Figure \ref{fig:impl-visualizations}.
 
 The utility draws the color legend for all image output methods by default.
 
-The images in figure \ref{fig:impl-visualizations} were generated from a 16GiB disk image of a modified Debian system with whole system encryption taken from the study materials of the course FI:PV204\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}}.
+The images in Figure \ref{fig:impl-visualizations} were generated from a 16GiB disk image of a modified Debian system with whole system encryption taken from the study materials of the course FI:PV204\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}}.
 
 \subsection{Sweeping and block sweeping}
 \label{ssec:sweeping-and-block-sweeping}
@@ -1211,7 +1211,7 @@ In this case, the sweeping block size is set to 32 if not specified.
 
 Sweeping is a special case of block sweeping with the sweeping block size set to 1.
 
-Images generated using the sweeping and sweeping blocks method can be found in the figures \ref{fig:impl-sweeping} and \ref{fig:impl-sweeping-blocks}.
+Images generated using the sweeping and sweeping blocks method can be found in the Figures \ref{fig:impl-sweeping} and \ref{fig:impl-sweeping-blocks}.
 
 \subsection{Hilbert curve}
 \label{ssec:hilbert-curve}
@@ -1227,7 +1227,7 @@ And therefore, the height and width are the same and equal to $2^i$.
 
 The algorithm used for transforming sector sequence numbers into x and y coordinates from the Hilbert curve has been adapted from a C implementation,\cite{wikihilbert} which is a special case of the algorithm from Skilling's work\cite{skilling04} adapted to use two dimensions and distance from the start rather than a transposed array of bits of the distance.
 
-In order to chain multiple Hilbert curves under each other and still keep the locality-preserving properties, the curves portrayed in the figure \ref{fig:hilbertiters} need to be mirrored along their top-left to bottom-right diagonals.
+In order to chain multiple Hilbert curves under each other and still keep the locality-preserving properties, the curves portrayed in the Figure \ref{fig:hilbertiters} need to be mirrored along their top-left to bottom-right diagonals.
 This can be simply achieved by swapping the x and y coordinates.
 
 
@@ -1263,10 +1263,10 @@ This chapter showcases examples of what the utility could be used for.
 
 All images were generated with the utility with its parameters set as follows:
 \begin{itemize}
-  \item sector size of 512B
-  \item chi2-4 analysis method
-  \item the significance level of 0.0002
-  \item photocopy-safe palette
+  \item sector size of 512 bytes,
+  \item chi2-4 analysis method,
+  \item the significance level $\alpha = 0.0002$,
+  \item photocopy-safe palette.
 \end{itemize}
 
 The output method changes from figure to figure and is always mentioned in the figure caption.
@@ -1274,8 +1274,7 @@ The output method changes from figure to figure and is always mentioned in the f
 \section{Used color palette}
 \label{sec:used-color-palette}
 
-All utility-generated images in this chapter were generated using the \texttt{photocopy-safe} palette.
-This palette is specifically designed to be still readable after conversion to grayscale.
+The \texttt{photocopy-safe} palette is specifically designed to be still readable after conversion to grayscale. 
 The \texttt{photocopy-safe} palette represents by light-green color the sectors that the analysis has marked as containing only zeroes.
 Pixels of yellow color represent sectors that only contain a single-byte pattern, which is not of byte 0.
 Unlike other implemented palettes, its shade does not represent the repeated byte value and is constant for each non-zero repeated byte value.
@@ -1292,7 +1291,7 @@ Pictures generated using Shannon's entropy analysis cannot contain orange as it 
 
 As all images in this chapter were analyzed using the \texttt{chi2-4} analysis method, the colors marking the randomness are only blue or red.
 
-The legend of the used palette can be found in the figure \ref{fig:legend}.
+The legend of the used palette can be found in the Figure \ref{fig:legend}.
 
 % All utility-generated images in this chapter were generated using the \texttt{sample-palette}.
 % The \texttt{sample-palette} represents by blue color the sectors that the analysis has marked as containing only zeroes.
@@ -1304,7 +1303,7 @@ The legend of the used palette can be found in the figure \ref{fig:legend}.
 
 % On the other hand, the chi2 analysis variants only produce two shades of magenta. The lighter shade represents sectors marked as random the darker shade marks all sectors that do not contain a single-byte pattern and are marked as not random. Furthermore, red pixels are only contained in the images analyzed through the chi2 analysis variants as Shannon's entropy analysis cannot mark sectors as \emph{perfect random}.
 
-Legend is not included in every image for space-saving reasons but can be found in the figure \ref{fig:legend}.
+Legend is not included in every image for space-saving reasons but can be found in the Figure \ref{fig:legend}.
 
 \begin{figure}[H]
   \includegraphics[width=.45\textwidth,interpolate=true]{legend.png}
@@ -1315,14 +1314,14 @@ Legend is not included in every image for space-saving reasons but can be found 
 \section{TRIM}
 \label{sec:trim}
 
-In order to show how TRIM affects the data stored on the disk and how the utility visualizes it crpytsetup 2.4.3 was used. 
+In order to show how TRIM affects the data stored on the disk and how the utility visualizes it cryptsetup 2.4.3 was used. 
 First, a plain dm-crypt mapping with allowed discards to a 2GiB file was created.
-Then through the mapping, a file system was created into which an unpacked Linux kernel 5.16.9 was copied.
-Then, all the files in the largest directory, \texttt{drivers}, were deleted.
+Then through the mapping, a file system was created into which unpacked source files of the Linux kernel 5.16.9 were copied.
+Then, all the files in the largest directory, \texttt{drivers}, were deleted (to enable the TRIM command to empty this space later).
 After deleting the files, a copy of the image was taken.
-Generated images of analyses of these copies can be found in figures \ref{fig:trim-ext4-no-trim} and \ref{fig:trim-xfs-no-trim}.
+Generated images of analyses of these copies can be found in Figures \ref{fig:trim-ext4-no-trim} and \ref{fig:trim-xfs-no-trim}.
 These copies were then compared to the resulting image after calling \texttt{fstrim} on the mounted mapper, which discarded all unused sectors.
-Images generated from images with discarded sectors can be found in figures \ref{fig:trim-ext4-trim} and \ref{fig:trim-xfs-trim}.
+Images generated from images with discarded sectors can be found in Figures \ref{fig:trim-ext4-trim} and \ref{fig:trim-xfs-trim}.
 
 \begin{figure}
   \centering
@@ -1365,16 +1364,16 @@ Images generated from images with discarded sectors can be found in figures \ref
 At first glance, one can see the difference.
 The sectors marked by green are the ones that were discarded, and it can be clearly seen how many sectors the data actually takes up and where precisely the encrypted data is stored.
 
-This need not necessarily be a huge security risk; however, in cases when it is vital not to show such information, it is good to be wary of such drawbacks of allowing trim commands.
+This need not necessarily be a huge security risk; however, in cases when it is vital not to show such information, it is good to be wary of such drawbacks of allowing TRIM commands.
 
 Note that the blue is not solid, and one can, after a closer inspection, occasionally see sectors marked by orange or red, which are the result of sectors randomly having the p-value of its chi-square statistic outside of the bounds defined by the default significance value of 0.0002.
 The number of these outlier pixels can be decreased by decreasing the significance level with the cost of decreasing the number of truly non-random sectors correctly identified as non-random.
-A closeup of these pixels can be seen in the figure \ref{fig:trim-zoomed}.
+A closeup of these pixels can be seen in the Figure \ref{fig:trim-zoomed}.
 
 \begin{figure}
     \centering
     \includegraphics[width=.95\textwidth,interpolate=false]{test-ext4-no-trim-chi2-4-sweeping-zoomed.png}
-    \caption{Zoomed in figure \ref{fig:trim-ext4-no-trim} with sectors marked as \emph{not random} or \emph{perfect random} highlighted with red circles}
+    \caption{Zoomed in Figure \ref{fig:trim-ext4-no-trim} with sectors marked as \emph{not random} or \emph{perfect random} highlighted with red circles}
     \label{fig:trim-zoomed}
 \end{figure}
 
@@ -1383,15 +1382,15 @@ A closeup of these pixels can be seen in the figure \ref{fig:trim-zoomed}.
 
 For illustration, a fresh Canonical Ubuntu 20.04\cite{ubuntu} installation with the ext4 filesystem was created without encryption.
 Then a file of the size of one gigabyte containing only a repeating word 'test' was written.
-After analyzing the 10 GiB disk image using the analysis method of \texttt{chi2-4} and visualizing it using the Hilbert curve visualization method, the image in the figure \ref{fig:bad-enc-unenc} was produced.
+After analyzing the 10GiB disk image using the analysis method of \texttt{chi2-4} and visualizing it using the Hilbert curve visualization method, the image in the Figure \ref{fig:bad-enc-unenc} was produced.
 On the generated image, one can distinctly see many areas of sectors of zeroes and also areas of sectors of unencrypted data.
 
 Then OpenSSL 1.1.1n\cite{openssl} was used to encrypt the entire disk image with 128-bit AES in ECB mode.
-Using the same analysis and visualization methods on the encrypted disk image as on the unencrypted variant, the utility generated the image in the figure \ref{fig:bad-enc-enc}.
+Using the same analysis and visualization methods on the encrypted disk image as on the unencrypted variant, the utility generated the image in the Figure \ref{fig:bad-enc-enc}.
 On the resulting image are evidently visible areas of detected unencrypted sectors.
-These are mostly the result of encrypting sectors of zeroes and, if the flawed encryption method were to be used and sector discarding was to be enabled, would most likely be trimmed and visible as zeroed regardless.
+These are mostly the result of encrypting sectors of zeroes and, if the flawed encryption method were to be used and sector discarding was to be enabled, would most likely be discarded and visible as zeroed regardless.
 However, many areas that previously contained more complex data also remained marked as \emph{not random}.
-Therefore not only would trimmed sectors be affected, but this effect can also occur in sectors storing actual data.
+Therefore not only would discarded sectors be affected, but this effect can also occur in sectors storing actual data.
 
 \begin{figure}
     \centering
@@ -1420,13 +1419,13 @@ Since the sectors contain multiple sectors of the same blocks, the \texttt{chi2-
 
 For each of the following examples, a different disk image was used.
 
-\subsection{BitLocker full volume encryption}
-\label{ssec:bitlocker-full-volume-encryption}
+\subsection{BitLocker Full Disk Encryption}
+\label{ssec:bitlocker-full-disk-encryption}
 
 For this example, a clean Windows 10 installation was created on a 50GiB virtual drive through Oracle VM VirtualBox.
 First, a raw copy of the disk image was taken using VBoxManage.
-Then, using the BitLocker user interface, full disk encryption was set up, after which another raw copy was taken.
-Then the images in the figure \ref{fig:bitlocker} were produced using the utility.
+Then, using the BitLocker user interface, Full Disk Encryption was set up, after which another raw copy was taken.
+Then the images in the Figure \ref{fig:bitlocker} were produced using the utility.
 
 \begin{figure}
   \centering
@@ -1459,13 +1458,12 @@ Then the images in the figure \ref{fig:bitlocker} were produced using the utilit
   \caption{Windows 10 disk image before and after encryption with BitLocker generated with the \texttt{hilbert-curve} output method and FVE metadata}
   \label{fig:bitlocker}
 \end{figure}
-
 In the drive, there are three partitions.
-The first is the system partition containing hardware-specific files needed to load windows,\cite{winpart} the second is the data partition visible from windows under the letter C, and the last is the recovery tools partition.\cite{winbiospart}
+The first is the system partition containing hardware-specific files needed to load Windows,\cite{winpart} the second is the data partition visible from Windows under the letter C, and the last is the recovery tools partition.\cite{winbiospart}
 
-In the figure \ref{fig:bitlocker-unenc}, one can see that most sectors seem to be unencrypted and, in the figure \ref{fig:bitlocker-enc}, only the first and last partitions remain unencrypted.
-After closer inspection, there are also visible chunks of unencrypted sectors in the second partition, and these are sectors containing FVE metadata blocks and their padding.\cite{metz22}
-An example of an unencrypted chunk containing FVE metadata can be found in the figure \ref{fig:bitlocker-metadata}. 
+In the Figure \ref{fig:bitlocker-unenc}, one can see that most sectors seem to be unencrypted and, in the figure \ref{fig:bitlocker-enc}, only the first and last partitions remain unencrypted.
+After closer inspection, there are also visible chunks of unencrypted sectors in the second partition, and these are sectors containing FVE (Full Volume Encryption) metadata blocks and their padding.\cite{metz22}
+An example of an unencrypted chunk containing FVE metadata can be found in the Figure \ref{fig:bitlocker-metadata}. 
 For this example, discarding sectors on the drive was not enabled. 
 Therefore unused zeroed out sectors are not visible, and it is not easily discernible whether the sector is occupied by a file.
 
@@ -1473,7 +1471,7 @@ Therefore unused zeroed out sectors are not visible, and it is not easily discer
 \label{ssec:cryptsetup-luks}
 
 % For this example, the image from the study materials from the year 2019 of the pv204 course\footnote{\url{https://is.muni.cz/auth/el/fi/jaro2019/PV204/um/seminars/08_diskencryption/pv204_fde.zip}} with whole system encryption with LUKS was used.
-% The figure FIGURE resulted from converting the image in \texttt{.vdi} to raw format and using the utility.
+% The Figure FIGURE resulted from converting the image in \texttt{.vdi} to raw format and using the utility.
 % In the figure, one can see that only the first part of the image contains chunks of unencrypted sectors.
 % Most of the unencrypted part is the boot partition.
 % However, after focusing only on the first two megabytes of the encrypted partition, unencrypted sectors, in the beginning, can still be clearly seen.
@@ -1481,8 +1479,8 @@ Therefore unused zeroed out sectors are not visible, and it is not easily discer
 
 For this example, a cryptsetup LUKS2 mapping was created to a 2GiB file.
 After formatting and creating an ext4 filesystem, a Linux kernel was copied into it, after which unused blocks were discarded.
-The figure \ref{fig:luks-full} was generated by the utility from the entirety of the 2GiB file.
-The figure \ref{fig:luks-header} is generated using the sweeping-blocks method and depicts only the first sixteen megabytes, which is the data from sectors containing the LUKS header.
+The Figure \ref{fig:luks-full} was generated by the utility from the entirety of the 2GiB file.
+The Figure \ref{fig:luks-header} is generated using the sweeping-blocks method and depicts only the first sixteen megabytes, which is the data from sectors containing the LUKS header.
 In the top-left corner, the primary binary header, first JSON area, their padding, and their copy can be seen.
 After the second JSON area padding, in accordance with the LUKS2 specification, the cryptographically generated keyslots area follows.\cite{broz22}
 
@@ -1532,13 +1530,13 @@ After the second JSON area padding, in accordance with the LUKS2 specification, 
 \subsection{VeraCrypt file-hosted volume}
 \label{ssec:veracrypt-file-hosted-volume}
 A VeraCrypt file-hosted volume of size 1GiB was created in a Ubuntu installation in Oracle VM VirtualBox on a 10GiB virtual drive with ext4 filesystem and without TRIM.
-The images in figure \ref{fig:veracrypt} were generated from the converted raw images before and after the VeraCrypt file-hosted volume\cite{veracryptvol} creation.
+The images in Figure \ref{fig:veracrypt} were generated from the converted raw images before and after the VeraCrypt file-hosted volume\cite{veracryptvol} creation.
 
-In the figure \ref{fig:veracrypt-with} is noticeably more sectors marked as \emph{random} than in the figure \ref{fig:veracrypt-without}.
+In the Figure \ref{fig:veracrypt-with} is noticeably more sectors marked as \emph{random} than in the Figure \ref{fig:veracrypt-without}.
 These are the sectors containing the encrypted file. 
 
 However, after a closer inspection, it is clear that the VeraCrypt volume also displaced non-zero byte-pattern sectors.
-This could be explained by the fact that some of the displaced sectors classified as not random could be remnants of previously deleted data, which has not been trimmed because of the disabled discard and therefore did not appear as zeroed.
+This could be explained by the fact that some of the displaced sectors classified as not random could be remnants of previously deleted data, which have not been discarded because of the disabled discard and therefore did not appear as zeroed.
 
 \begin{figure}
   \centering
@@ -1581,11 +1579,11 @@ This utility was then used to analyze and visualize various disk images, and in 
 
 Possible future extensions or modifications of the utility include:
 \begin{itemize}
-  \item optimizing the existing analysis methods for faster analysis
-  \item adding new analysis and output methods or new palettes
-  \item incorporating analysis of byte patterns at specific offsets of the image
-  \item options to incorporate filesystem information to classify used sectors based on which file's contents they store
-  \item adding an analysis progress indicator
+  \item optimizing the existing analysis methods for faster analysis,
+  \item adding new analysis and output methods or new palettes,
+  \item incorporating analysis of byte patterns at specific offsets of the image,
+  \item options to incorporate filesystem information to classify used sectors based on which file's contents they store,
+  \item adding an analysis progress indicator.
 \end{itemize}
 
 \makeatletter\thesis@blocks@clear\makeatother
