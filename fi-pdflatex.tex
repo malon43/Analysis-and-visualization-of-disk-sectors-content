@@ -65,9 +65,7 @@
       Then, several examples of disk images visualized using the introduced utility are showcased and discussed.
     },
     thanks      = {%
-      These are the acknowledgements for my thesis, which can
-
-      span multiple paragraphs.
+      First and foremost, I would like to sincerely thank my supervisor ing. Milan Brož, Ph.D., for his time, help, guidance, and constructive feedback provided over the past months. I would also like to show gratitude to my family and friends for their continuous support.
     },
     bib         = bibliography.bib,
     %% Remove the following line to use the JVS 2018 faculty logo.
@@ -1801,7 +1799,7 @@ Otherwise, the method needs to be updated.
 Each output method should be implemented in the form of a class and should derive from the \texttt{OutputMethodBase} class from the \texttt{output\_common} module.
 To register an output method to be available for user, add it to the \texttt{output\_methods} \texttt{dict} in the \texttt{output\_methods.py} file.
 
-All output methods classes should also have the \texttt{default\_parameters} attribute, which is a dictionary mapping of parameter names to the \texttt{Parameter} \texttt{dataclass} instance.
+All implemented output method classes should also have the \texttt{default\_parameters} attribute, which is a dictionary mapping of parameter names to the \texttt{Parameter} \texttt{dataclass} instance.
 The parameter name is in the form of a string adhering to Python's attribute naming guidelines and after calling the \texttt{super().\_\_init\_\_(input\_size, **kwargs)} method can be accessed using \texttt{self.parameter\_name}, and the number of sectors in the file is accessible using \texttt{self.\_input\_size}. \texttt{Parameter} \texttt{dataclass} instances can be built using the \texttt{Parameter()} class with its construction arguments:
 \begin{itemize}
   \item \texttt{type}: a callable taking a single string parameter and returning the parameter converted to the desired value or raises the \texttt{argparse.ArgumentTypeError} exception in case of the argument being invalid.
@@ -1828,7 +1826,7 @@ All output method classes should also implement the following methods:
 \end{itemize}
 
 \subsection{Image output methods}
-It is possible to use the class \texttt{ImageOutput} from the module \texttt{image\_output} as the base of your new output method.
+It is possible to use the class \texttt{ImageOutput} from the \texttt{image\_output} module as the base of your new output method.
 In the \texttt{default\_parameters} dictionary parameter names \texttt{output\_file}, \texttt{err\_file}, \texttt{no\_legend}, \texttt{background}, \texttt{palette}, \texttt{font}, \texttt{font\_size}, and \texttt{font\_color} should not be overridden.
 \texttt{ImageOutput} already implements the four needed methods described above.
 However, all methods deriving from it should implement the following methods:
@@ -1842,7 +1840,7 @@ Each color palette should be implemented in the form of a class and should have 
 \begin{itemize}
   \item \texttt{NEEDS\_ALPHA}: \texttt{True} if the palette can produce colors with transparency, \texttt{False} otherwise,
   \item \texttt{LEGEND}: \texttt{list} of \texttt{tuple}s of RGB/RGBA color \texttt{tuple}s and their description,
-  \item \texttt{staticmethod} \texttt{get(sector\_number, sector\_offset, sector\_randomness, result\_flag, result\_arg)}: based on the analysis result return color tuple.
+  \item \texttt{staticmethod} \texttt{get(}\\\-\hspace{.5cm}\texttt{sector\_number}, \\\-\hspace{.5cm}\texttt{sector\_offset}, \\\-\hspace{.5cm}\texttt{sector\_randomness}, \\\-\hspace{.5cm}\texttt{result\_flag}, \\\-\hspace{.5cm}\texttt{result\_arg}\\\texttt{)}: based on the analysis result return color tuple.
 \end{itemize}
 To register a color palette, add it to the dictionary \texttt{palettes} in the \texttt{palettes.py} file.
 
