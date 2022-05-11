@@ -1,5 +1,0 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/home/jakub/School/SBAPR/analysis-and-visualization-of-disk-sectors-content'
-latexmk -pdf fi-pdflatex.tex
-make: Leaving directory '/home/jakub/School/SBAPR/analysis-and-visualization-of-disk-sectors-content'
- 
