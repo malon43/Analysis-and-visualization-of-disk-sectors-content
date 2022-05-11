@@ -65,7 +65,7 @@
       Then, several examples of disk images visualized using the introduced utility are showcased and discussed.
     },
     thanks      = {%
-      First and foremost, I would like to sincerely thank my supervisor ing. Milan Brož, Ph.D., for his time, help, guidance, and constructive feedback provided over the past months. I would also like to show gratitude to my family and friends for their continuous support.
+      First and foremost, I would like to sincerely thank my supervisor Ing. Milan Brož, Ph.D., for his time, help, guidance, and constructive feedback provided over the past months. I would also like to show gratitude to my family and friends for their continuous support.
     },
     bib         = bibliography.bib,
     %% Remove the following line to use the JVS 2018 faculty logo.
@@ -81,6 +81,7 @@
 \usepackage{paralist} %% Compact list environments
 \usepackage{amsmath}  %% Mathematics
 \usepackage{amsthm}
+\usepackage{enumitem}
 \usepackage{amsfonts}
 \usepackage[hyphens]{url}      %% Hyperlinks
 \usepackage{markdown} %% Lightweight markup
@@ -1604,7 +1605,7 @@ Utility-generated images in this thesis needed to be downsized and every figure 
 \label{sec:future-work}
 
 Possible future extensions or modifications of the utility include:
-\begin{itemize}
+\begin{itemize}[itemsep=-1.8359375pt]
   \item optimizing the existing analysis methods for faster analysis,
   \item adding new analysis and output methods or new palettes,
   \item incorporating analysis of byte patterns at specific offsets of the image, for example, by using the libblkid library\cite{libblkid},
@@ -1646,8 +1647,9 @@ options:
   -l SIG_LEVEL, --significance-level SIG_LEVEL
                         the significance level to use
                         for classification (cannot be
-                        used with 'rand-lim' and 'sus-
-                        rand-lim') (default: 0.0002)
+                        used with '--rand-lim' and
+                        '--sus-rand-lim') (default:
+                        0.0002)
   --rand-lim RAND_LIM   random significance limit
                         (default: 0.9999)
   --sus-rand-lim SUS_RAND_LIM
@@ -1699,8 +1701,8 @@ options:
                           photocopy-safe) (default:
                           photocopy-safe)
     --font FONT           font to use for legend
-                          (default: LiberationMono-
-                          Regular)
+                          (default: 
+                          LiberationMono-Regular)
     --font-size FONT_SIZE
                           font size to use for legend in
                           pixels (default: automatic)
@@ -1727,8 +1729,8 @@ options:
                           photocopy-safe)
 
     --font FONT           font to use for legend
-                          (default: LiberationMono-
-                          Regular)
+                          (default: 
+                          LiberationMono-Regular)
     --font-size FONT_SIZE
                           font size to use for legend in
                           pixels (default: automatic)
@@ -1758,8 +1760,8 @@ options:
                           photocopy-safe) (default:
                           photocopy-safe)
     --font FONT           font to use for legend
-                          (default: LiberationMono-
-                          Regular)
+                          (default:
+                          LiberationMono-Regular)
     --font-size FONT_SIZE
                           font size to use for legend in
                           pixels (default: automatic)
