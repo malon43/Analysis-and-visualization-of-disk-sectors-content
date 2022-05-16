@@ -61,7 +61,7 @@
     TeXkeywords = {visualization, disk encryption, disk sector, randomness detection},
     abstract    = {%
       Data visualization is often vital for people's understanding of the data.
-      This thesis discusses methods of classifying disk sectors based on their randomness using statistical tests or Shannon's entropy calculation and methods for visualization.
+      This thesis discusses methods of classifying disk sectors based on their randomness using statistical tests or Shannon's entropy calculation and methods of visualization.
       The thesis also introduces a utility that analyzes sectors of a provided disk image and visualizes them to provide a visual representation of which sectors are encrypted, discarded, or may contain readable data.
       Then, several examples of disk images visualized using the introduced utility are showcased and discussed.
     },
@@ -343,7 +343,7 @@ After classifying all disk sectors based on byte patterns and entropy, it all co
 While it would be certainly possible to draw a histogram of all sectors' entropy values or a pie graph based on detected patterns, this would not be as illustrative as the chosen approach, and much of the information about sector position in the disk would be lost.
 That is why the resulting utility visualizes the data using a bitmap, where each pixel represents a single sector on a disk.
 
-Many works which were visualizing data used the most straightforward technique of \emph{sweeping}.\cite{hargreaves13, charalampidis18, broz11}
+Many works which were visualizing data used the most straightforward technique of sweeping.\cite{hargreaves13, charalampidis18, broz11}
 This means that the first pixel is placed in the top-left corner, and each following pixel is placed to the right of the previous one except for when the position exceeds the fixed width of the image.
 In that case, the pixel is placed on the left-most position on the following line.
 This technique can be very illustrative in cases when the disk contains long sequences of equally classified sectors.
@@ -1207,8 +1207,8 @@ Since the image needs to fit all of the sectors and the number of sectors can va
 
 The utility also provides means for generating the images using multiple color palettes.
 The four implemented are \texttt{sample}, \texttt{asalor}, \texttt{rg}, and \texttt{photocopy-safe} palettes.
-The \texttt{asalor} color palette is the one used in Milan Broz's blog\cite{broz11}.
-The colors for palettes rg and photocopy-safe were taken from colorbrewer2.org\cite{brewer02}.
+The \texttt{asalor} color palette is the one used in Milan Broz's blog.\cite{broz11}
+The colors for palettes \texttt{rg} and \texttt{photocopy-safe} were taken from \href{https://colorbrewer2.org/}{colorbrewer2.org}.\cite{brewer02}
 The \texttt{photocopy-safe} palette can be seen in the Figure \ref{fig:impl-visualizations}.
 
 The utility draws the color legend for all image output methods by default.
@@ -1245,6 +1245,8 @@ The algorithm used for transforming sector sequence numbers into x and y coordin
 
 In order to chain multiple Hilbert curves under each other and still keep the locality-preserving properties, the curves portrayed in the Figure \ref{fig:hilbertiters} need to be mirrored along their top-left to bottom-right diagonals.
 This can be simply achieved by swapping the x and y coordinates.
+
+Image generated using the Hilbert curve output method can be seen in the Figure \ref{fig:impl-hilbert-curve}.
 
 
 \begin{figure}
@@ -1318,8 +1320,6 @@ The legend of the used palette can be found in the Figure \ref{fig:legend}.
 % And finally, by magenta are marked all the remaining sectors. The shade of magenta depends on the detected randomness by the analysis. For analysis using Shannon's entropy, the resulting shades of magenta range from black for the lowest but larger than 0 entropy to the brightest magenta (i.e., \texttt{\#FF00FF} in hex color representation) for the highest entropy. 
 
 % On the other hand, the chi2 analysis variants only produce two shades of magenta. The lighter shade represents sectors marked as random the darker shade marks all sectors that do not contain a single-byte pattern and are marked as not random. Furthermore, red pixels are only contained in the images analyzed through the chi2 analysis variants as Shannon's entropy analysis cannot mark sectors as \emph{perfect random}.
-
-Legend is not included in every image for space-saving reasons but can be found in the Figure \ref{fig:legend}.
 
 \begin{figure}[H]
   \includegraphics[width=.45\textwidth,interpolate=true]{legend.png}
